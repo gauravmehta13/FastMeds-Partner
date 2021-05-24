@@ -21,12 +21,39 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="fastmeds">
+  <meta name="google-signin-client_id" content="377676800120-up0oob6cusf75j8rq1l433pf975iavjk.apps.googleusercontent.com">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <title>fastmeds</title>
+  <title>FastMeds Partner</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+
+  
+  <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-app.js"></script>
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-firestore.js"></script>
+ <script src="https://www.gstatic.com/firebasejs/8.6.2/firebase-storage.js"></script>
+
+
+ <script>
+var firebaseConfig = {
+    apiKey: "AIzaSyDndtclfEOg-_YzwRXRogXXPY5i6Mh5l04",
+    authDomain: "fastmeds-2021.firebaseapp.com",
+    projectId: "fastmeds-2021",
+    storageBucket: "fastmeds-2021.appspot.com",
+    messagingSenderId: "377676800120",
+    appId: "1:377676800120:web:fbcdb616892c7ce0508d8d",
+    measurementId: "G-H82G8FD3NY"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+
+</script>
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
