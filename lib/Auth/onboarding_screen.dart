@@ -111,12 +111,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         idToken: googleAuth.idToken,
       );
       await _auth.signInWithCredential(credential).then((value) async {
+        print(value.additionalUserInfo!.isNewUser);
         if (value.additionalUserInfo!.isNewUser) {
+          await DatabaseService(_auth.currentUser!.uid)
+              .updateUserData("", "", "", "", "", "");
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => MandatoryKYC()));
+        } else {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => HomePage()));
         }
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomePage()));
       });
     }
   }

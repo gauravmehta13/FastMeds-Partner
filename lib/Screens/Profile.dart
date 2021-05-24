@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Screens/Drawer.dart';
+import 'package:fastmeds/Screens/OnBoarding/Mandatory%20KYC.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/components/search_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../Fade Route.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -28,7 +31,12 @@ class _HomePageState extends State<HomePage> {
             return Loading();
           }
           dynamic document = snapshot.data;
-
+          if (document["phone"] == "") {
+            Navigator.pushReplacement(
+              context,
+              FadeRoute(page: MandatoryKYC()),
+            );
+          }
           return Scaffold(
             key: _drawerKey,
             drawer: MyDrawer(),
@@ -79,10 +87,11 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     Text(
-                      document["shopName"],
+                      document?["shopName"] ?? "",
                       style: TextStyle(fontSize: 20),
                     ),
                     Text(document["phone"]),
+                    Text(document["gstNo"]),
                     Text(
                         "${document!["address"]}, ${document!["city"]}, ${document!["state"]}")
                   ],
