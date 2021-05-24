@@ -362,29 +362,32 @@ class _MandatoryKYCState extends State<MandatoryKYC> {
                                             labelText: "GST Number (Optional)"),
                                       ),
                                       box20,
-                                      Row(
-                                        children: [
-                                          Text(
-                                            "Shop Images :\n(Optional)",
-                                            style: TextStyle(
-                                                color: Colors.grey[700]),
-                                          ),
-                                          SizedBox(
-                                            width: 20,
-                                          ),
-                                          RawMaterialButton(
-                                              onPressed: () {},
-                                              elevation: 0,
-                                              fillColor: Color(0xFFf9a825)
-                                                  .withOpacity(0.3),
-                                              child:
-                                                  Icon(FontAwesomeIcons.upload),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)))
-                                        ],
-                                      )
+                                      // Row(
+                                      //   children: [
+                                      //     Text(
+                                      //       "Shop Images :\n(Optional)",
+                                      //       style: TextStyle(
+                                      //           color: Colors.grey[700]),
+                                      //     ),
+                                      //     SizedBox(
+                                      //       width: 20,
+                                      //     ),
+                                      //     RawMaterialButton(
+                                      //         onPressed: () {
+                                      //           displaySnackBar(
+                                      //               "Coming Soon", context);
+                                      //         },
+                                      //         elevation: 0,
+                                      //         fillColor: Color(0xFFf9a825)
+                                      //             .withOpacity(0.3),
+                                      //         child:
+                                      //             Icon(FontAwesomeIcons.upload),
+                                      //         shape: RoundedRectangleBorder(
+                                      //             borderRadius:
+                                      //                 BorderRadius.circular(
+                                      //                     10)))
+                                      //   ],
+                                      // )
                                     ],
                                   ),
                                 ],
