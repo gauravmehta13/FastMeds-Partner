@@ -1,6 +1,7 @@
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Constants/Districts.dart';
 import 'package:fastmeds/Screens/Home%20Page.dart';
+import 'package:fastmeds/Screens/Profile.dart';
 import 'package:fastmeds/models/database.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
@@ -89,7 +90,7 @@ class _MandatoryKYCState extends State<MandatoryKYC> {
                         });
                         Navigator.pushReplacement(
                           context,
-                          FadeRoute(page: HomeScreen()),
+                          FadeRoute(page: HomePage()),
                         );
                       }
                     },

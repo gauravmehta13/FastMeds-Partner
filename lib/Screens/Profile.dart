@@ -9,12 +9,12 @@ import 'package:flutter_svg/svg.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
-class Profile extends StatefulWidget {
+class HomePage extends StatefulWidget {
   @override
-  _ProfileState createState() => _ProfileState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _ProfileState extends State<Profile> {
+class _HomePageState extends State<HomePage> {
   GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
   @override
   Widget build(BuildContext context) {

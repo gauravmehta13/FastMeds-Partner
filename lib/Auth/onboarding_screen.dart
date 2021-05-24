@@ -1,5 +1,6 @@
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Screens/OnBoarding/Mandatory%20KYC.dart';
+import 'package:fastmeds/Screens/Profile.dart';
 import 'package:fastmeds/models/database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -115,18 +116,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               context, MaterialPageRoute(builder: (context) => MandatoryKYC()));
         }
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
+            context, MaterialPageRoute(builder: (context) => HomePage()));
       });
     }
   }
 
-  checkAuthentification() async {
-    _auth.authStateChanges().listen((user) {
-      if (user != null) {
-        print(user);
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
-      }
-    });
-  }
+  // checkAuthentification() async {
+  //   _auth.authStateChanges().listen((user) {
+  //     if (user != null) {
+  //       print(user);
+  //       Navigator.pushReplacement(
+  //           context, MaterialPageRoute(builder: (context) => HomeScreen()));
+  //     }
+  //   });
+  // }
 }

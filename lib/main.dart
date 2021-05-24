@@ -24,7 +24,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool loading = kIsWeb ? true : false;
-  late Widget home = _auth.currentUser != null ? Profile() : OnboardingScreen();
+  late Widget home =
+      _auth.currentUser != null ? HomePage() : OnboardingScreen();
 
   void initState() {
     if (kIsWeb) {
@@ -32,7 +33,7 @@ class _MyAppState extends State<MyApp> {
       subscription.onData((event) async {
         if (event != null) {
           setState(() {
-            home = Profile();
+            home = HomePage();
           });
           subscription.cancel();
           setState(() {
