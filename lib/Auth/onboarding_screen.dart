@@ -23,6 +23,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // this.checkAuthentification();
   }
 
+  bool loading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,30 +68,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                     box20,
-                    MaterialButton(
-                      color: Colors.white,
-                      elevation: 10,
-                      height: 45,
-                      onPressed: () {
-                        googleLogin();
-                      },
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          side: BorderSide(color: Color(0xff3b5998))),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/google.png', scale: 3),
-                          SizedBox(
-                            width: 20,
+                    loading
+                        ? CircularProgressIndicator()
+                        : MaterialButton(
+                            color: Colors.white,
+                            elevation: 10,
+                            height: 45,
+                            onPressed: () {
+                              setState(() {
+                                loading = true;
+                              });
+                              googleLogin();
+                            },
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                side: BorderSide(color: Color(0xff3b5998))),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset('assets/google.png', scale: 3),
+                                SizedBox(
+                                  width: 20,
+                                ),
+                                Text(
+                                  'Get Started',
+                                  style: TextStyle(color: Color(0xff3b5998)),
+                                )
+                              ],
+                            ),
                           ),
-                          Text(
-                            'Get Started',
-                            style: TextStyle(color: Color(0xff3b5998)),
-                          )
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -101,27 +108,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future googleLogin() async {
-    final user = await googleSignIn.signIn();
-    if (user == null) {
-      return;
-    } else {
-      final googleAuth = await user.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      await _auth.signInWithCredential(credential).then((value) async {
-        print(value.additionalUserInfo!.isNewUser);
-        if (value.additionalUserInfo!.isNewUser) {
-          await DatabaseService(_auth.currentUser!.uid)
-              .updateUserData("", "", "", "", "", "");
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => MandatoryKYC()));
-        } else {
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => HomePage()));
-        }
+    try {
+      final user = await googleSignIn.signIn();
+      if (user == null) {
+        return;
+      } else {
+        final googleAuth = await user.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        await _auth.signInWithCredential(credential).then((value) async {
+          print(value.additionalUserInfo!.isNewUser);
+          if (value.additionalUserInfo!.isNewUser) {
+            await DatabaseService(_auth.currentUser!.uid)
+                .updateUserData("", "", "", "", "", "");
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => MandatoryKYC()));
+          } else {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => HomePage()));
+          }
+          setState(() {
+            loading = false;
+          });
+        });
+      }
+    } catch (e) {
+      setState(() {
+        loading = false;
       });
+      displaySnackBar("Error, please try again later..!!", context);
     }
   }
 
