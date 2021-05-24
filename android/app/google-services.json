@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "377676800120",
+    "project_id": "fastmeds-2021",
+    "storage_bucket": "fastmeds-2021.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:377676800120:android:cce29d8a76f4e645508d8d",
+        "android_client_info": {
+          "package_name": "com.fastmeds"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "377676800120-qh67oom7vj4c4jcaimd6hpkenea165rm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.fastmeds",
+            "certificate_hash": "9d25b6fbfed005e7ca5654492ff12fe181cd63a9"
+          }
+        },
+        {
+          "client_id": "377676800120-nc8bp5bfh4c6umda6vhvh65diudgoe9q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF6F3uHf5EEkQxsqcphxKJxqchyWMJNW0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "377676800120-nc8bp5bfh4c6umda6vhvh65diudgoe9q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
