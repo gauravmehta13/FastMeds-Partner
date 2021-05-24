@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> {
         ? Container(child: Center(child: CircularProgressIndicator()))
         : MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'FastMeds',
+            title: 'FastMeds Partner',
             theme: ThemeData(
               appBarTheme: Theme.of(context)
                   .appBarTheme
