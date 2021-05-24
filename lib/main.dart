@@ -1,5 +1,6 @@
 import 'package:fastmeds/Screens/Home%20Page.dart';
 import 'package:fastmeds/Auth/onboarding_screen.dart';
+import 'package:fastmeds/Screens/Profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -23,8 +24,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool loading = kIsWeb ? true : false;
-  late Widget home =
-      _auth.currentUser != null ? HomeScreen() : OnboardingScreen();
+  late Widget home = _auth.currentUser != null ? Profile() : OnboardingScreen();
 
   void initState() {
     if (kIsWeb) {
@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
       subscription.onData((event) async {
         if (event != null) {
           setState(() {
-            home = HomeScreen();
+            home = Profile();
           });
           subscription.cancel();
           setState(() {
@@ -75,8 +75,6 @@ class _MyAppState extends State<MyApp> {
               accentColor: primaryColor,
               backgroundColor: primaryColor,
             ),
-            home: home
-            // home: MandatoryKYC()
-            );
+            home: home);
   }
 }
