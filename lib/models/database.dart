@@ -10,7 +10,7 @@ class DatabaseService {
     });
   }
 
-  Future updatePharmacyData(String shopName, String gstNo, String address,
+  Future updatePharmacyData(String shopName, String pin, String address,
       String city, String state, String phone) async {
     await FirebaseFirestore.instance.collection("Pharmacy").doc(uid).set({
       'shopName': shopName,
@@ -18,7 +18,7 @@ class DatabaseService {
       'city': city,
       'state': state,
       'address': address,
-      "gstNo": gstNo,
+      "pin": pin,
     });
   }
 

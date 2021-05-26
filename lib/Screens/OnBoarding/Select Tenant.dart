@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../Fade Route.dart';
 import 'Ambulance.dart';
-import 'Consultation.dart';
+import 'Diagnostic Labs.dart';
 import 'Volunteer.dart';
 import 'Doctors.dart';
 import 'Hospital.dart';
@@ -100,6 +100,7 @@ class _SelectTenantState extends State<SelectTenant> {
                                   ),
                                   Text(
                                     gridData[index]["title"],
+                                    textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: primaryColor, fontSize: 13),
                                   ),
@@ -132,10 +133,10 @@ List gridData = [
     "page": Ambulance(),
     "icon": FontAwesomeIcons.ambulance
   },
-  {
-    "title": "Consultation",
-    "page": Consultation(),
-    "icon": FontAwesomeIcons.facebookMessenger
-  },
   {"title": "Pharmacy", "page": Pharmacy(), "icon": FontAwesomeIcons.pills},
+  {
+    "title": "Diagnostic\nLabs",
+    "page": Diagnostics(),
+    "icon": FontAwesomeIcons.thermometerThreeQuarters
+  },
 ];

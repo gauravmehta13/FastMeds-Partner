@@ -1,15 +1,21 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Constants/Districts.dart';
-import 'package:fastmeds/Screens/Home%20Page.dart';
 import 'package:fastmeds/Screens/Profile.dart';
 import 'package:fastmeds/models/database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:convert' as convert;
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:image_picker/image_picker.dart';
 import '../../Fade Route.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -22,6 +28,11 @@ class Pharmacy extends StatefulWidget {
 }
 
 class _PharmacyState extends State<Pharmacy> {
+  late File imageFile;
+  late bool isLoading;
+  late String imageUrl;
+  var pickupData;
+  List<String> pickupOptions = [];
   var dio = Dio();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool loading = false;
@@ -33,15 +44,8 @@ class _PharmacyState extends State<Pharmacy> {
   final formKey = GlobalKey<FormState>();
   var companyName = new TextEditingController();
   var streetAddress = new TextEditingController();
-  var gstNo = new TextEditingController();
+  var pinCode = new TextEditingController();
   var phone = new TextEditingController();
-
-  // PlatformFile displayImage;
-  // String displayImageLink;
-  // PlatformFile incorporationCertificate;
-  // String incorporationCertificateLink;
-  // List<PlatformFile> otherImages = [];
-  List<String> otherImagesLink = [];
   bool uploadingImages = false;
   final ScrollController scrollController = ScrollController();
 
@@ -80,7 +84,7 @@ class _PharmacyState extends State<Pharmacy> {
                         await DatabaseService(_auth.currentUser!.uid)
                             .updatePharmacyData(
                                 companyName.text,
-                                gstNo.text,
+                                pinCode.text,
                                 streetAddress.text,
                                 districtName,
                                 stateName,
@@ -340,55 +344,149 @@ class _PharmacyState extends State<Pharmacy> {
                                         },
                                       ),
                                       box20,
-                                      new TextFormField(
-                                        autovalidateMode:
-                                            AutovalidateMode.onUserInteraction,
-                                        controller: gstNo,
-                                        decoration: new InputDecoration(
-                                            isDense: true, // Added this
-                                            prefixIcon:
-                                                Icon(FontAwesomeIcons.pen),
-                                            contentPadding: EdgeInsets.all(15),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(4)),
-                                              borderSide: BorderSide(
-                                                width: 1,
-                                                color: Color(0xFF2821B5),
-                                              ),
-                                            ),
-                                            border: new OutlineInputBorder(
-                                                borderSide: new BorderSide(
-                                                    color: Colors.grey[200]!)),
-                                            labelText: "GST Number (Optional)"),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                              child: TextFormField(
+                                            keyboardType: TextInputType.number,
+                                            maxLength: 6,
+                                            textInputAction:
+                                                TextInputAction.next,
+                                            controller: pinCode,
+                                            onChanged: (pin) async {
+                                              var pickupPin = int.tryParse(pin);
+                                              var count = 0, temp = pickupPin;
+                                              while (temp! > 0) {
+                                                count++;
+                                                temp = (temp / 10).floor();
+                                              }
+                                              print(count);
+                                              setState(() {
+                                                pickupOptions = [];
+                                              });
+                                              if (count == 6) {
+                                                getPinData() async {
+                                                  var response = await dio.get(
+                                                      "https://api.postalpincode.in/pincode/$pin");
+                                                  print(response.data);
+                                                  var data = json
+                                                      .decode(response.data);
+                                                  setState(() {
+                                                    pickupOptions = [];
+                                                  });
+                                                  for (int i = 0;
+                                                      i <
+                                                          data[0]["PostOffice"]
+                                                              .length;
+                                                      i++) {
+                                                    pickupOptions.add(data[0]
+                                                            ["PostOffice"][i]
+                                                        ["Name"]);
+                                                  }
+
+                                                  setState(() {
+                                                    pickupData =
+                                                        data[0]["PostOffice"];
+                                                    pickupOptions =
+                                                        pickupOptions;
+                                                  });
+                                                  print(pickupOptions);
+                                                  print(pickupData);
+                                                }
+
+                                                getPinData();
+                                              }
+                                            },
+                                            decoration: new InputDecoration(
+                                                isDense: true,
+                                                counterText: "",
+                                                helperText: pickupData != null
+                                                    ? "${pickupData[0]["District"]}, ${pickupData[0]["State"]}"
+                                                    : "", // Added this
+                                                prefixIcon: Icon(
+                                                    FontAwesomeIcons
+                                                        .locationArrow),
+                                                contentPadding:
+                                                    EdgeInsets.all(15),
+                                                focusedBorder:
+                                                    OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.all(
+                                                          Radius.circular(4)),
+                                                  borderSide: BorderSide(
+                                                    width: 1,
+                                                    color: Color(0xFF2821B5),
+                                                  ),
+                                                ),
+                                                border: new OutlineInputBorder(
+                                                    borderSide: new BorderSide(
+                                                        color:
+                                                            Colors.grey[200]!)),
+                                                labelText: "Pin Code"),
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Required';
+                                              }
+                                              return null;
+                                            },
+                                          )),
+                                          if (pickupOptions.length != 0)
+                                            Column(
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      EdgeInsets.only(left: 5),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            5.0),
+                                                    border: Border.all(
+                                                        color: Colors.grey,
+                                                        style:
+                                                            BorderStyle.solid,
+                                                        width: 0.80),
+                                                  ),
+                                                  // child: DropDown(
+                                                  //   showUnderline: false,
+                                                  //   items: pickupOptions,
+                                                  //   hint: Text("Select Pickup Area"),
+                                                  //   onChanged: print,
+                                                  // ),
+                                                ),
+                                                SizedBox(
+                                                  height: 22,
+                                                )
+                                              ],
+                                            )
+                                        ],
                                       ),
-                                      box20,
-                                      // Row(
-                                      //   children: [
-                                      //     Text(
-                                      //       "Shop Images :\n(Optional)",
-                                      //       style: TextStyle(
-                                      //           color: Colors.grey[700]),
-                                      //     ),
-                                      //     SizedBox(
-                                      //       width: 20,
-                                      //     ),
-                                      //     RawMaterialButton(
-                                      //         onPressed: () {
-                                      //           displaySnackBar(
-                                      //               "Coming Soon", context);
-                                      //         },
-                                      //         elevation: 0,
-                                      //         fillColor: Color(0xFFf9a825)
-                                      //             .withOpacity(0.3),
-                                      //         child:
-                                      //             Icon(FontAwesomeIcons.upload),
-                                      //         shape: RoundedRectangleBorder(
-                                      //             borderRadius:
-                                      //                 BorderRadius.circular(
-                                      //                     10)))
-                                      //   ],
-                                      // )
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "Shop Image :\n(Optional)",
+                                            style: TextStyle(
+                                                color: Colors.grey[700]),
+                                          ),
+                                          SizedBox(
+                                            width: 20,
+                                          ),
+                                          RawMaterialButton(
+                                              onPressed: () {
+                                                displaySnackBar(
+                                                    "Coming Soon", context);
+                                              },
+                                              elevation: 0,
+                                              fillColor: Color(0xFFf9a825)
+                                                  .withOpacity(0.3),
+                                              child:
+                                                  Icon(FontAwesomeIcons.upload),
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10)))
+                                        ],
+                                      )
                                     ],
                                   ),
                                 ],
@@ -441,261 +539,72 @@ class _PharmacyState extends State<Pharmacy> {
   //   }
   // }
 
-  // getIncorporationCertificate() async {
-  //   FilePickerResult result = await FilePicker.platform.pickFiles(
-  //     withReadStream: true,
-  //     allowedExtensions: ['jpg', 'pdf', 'doc'],
-  //     type: FileType.custom,
-  //   );
-  //   if (result != null) {
-  //     print(result);
-  //     print(result.files);
-  //     print(result.files.single);
-  //     print(result.files.single.name);
-  //     print(result.files.single.size);
-  //     print(result.files.single.path);
-  //     setState(() {
-  //       // print(paths.first.extension);
-  //       // fileName = paths != null ? paths.map((e) => e.name).toString() : '...';
-  //       // print(fileName);
-  //     });
-  //     setState(() {
-  //       incorporationCertificate = result.files.single;
-  //     });
-  //     uploadIncorpCertificate();
-  //   } else {
-  //     // User canceled the picker
-  //   }
-  // }
+  Future getImage(int index) async {
+    PickedFile selectedFile;
 
-  // getDisplayImage() async {
-  //   FilePickerResult result = await FilePicker.platform.pickFiles(
-  //     withReadStream: true,
-  //     allowedExtensions: ["jpg"],
-  //     type: FileType.custom,
-  //   );
-  //   if (result != null) {
-  //     setState(() {
-  //       displayImage = result.files.single;
-  //     });
-  //     uploadDisplayImage();
-  //   } else {
-  //     // User canceled the picker
-  //   }
-  // }
+    if (kIsWeb) {
+      //selectedFile=await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+      selectedFile =
+          (await ImagePicker().getImage(source: ImageSource.gallery))!;
+    } else {
+      if (index == 0)
+        selectedFile =
+            (await ImagePicker().getImage(source: ImageSource.gallery))!;
+      else
+        selectedFile =
+            (await ImagePicker().getImage(source: ImageSource.camera))!;
 
-  // getOtherImages() async {
-  //   try {
-  //     otherImages = (await FilePicker.platform.pickFiles(
-  //       withReadStream: true,
-  //       allowMultiple: true,
-  //       allowedExtensions: ["jpg"],
-  //       type: FileType.custom,
-  //     ))
-  //         ?.files;
-  //     setState(() {
-  //       otherImages = otherImages;
-  //     });
-  //     print(otherImages.length);
-  //     uploadOtherImages();
-  //   } on PlatformException catch (e) {
-  //     print("Unsupported operation" + e.toString());
-  //   } catch (ex) {
-  //     print(ex);
-  //   }
-  // }
+      //imageFile =File(selectedFile.path);
 
-  // uploadIncorpCertificate() async {
-  //   setState(() {
-  //     uploadingImages = true;
-  //   });
-  //   final mimeType = lookupMimeType(incorporationCertificate.name);
-  //   print(mimeType);
+    }
 
-  //   await dio.post(
-  //       'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/kyc/document?type=packersAndMovers',
-  //       data: {
-  //         "contentType": mimeType,
-  //         "metaData": {
-  //           "contentType": mimeType,
-  //         },
-  //       }).then((response) async {
-  //     Map<String, dynamic> map = json.decode(response.toString());
+    if (selectedFile != null) {
+      setState(() {
+        //orFile=selectedFile;
+        isLoading = true;
+      });
+      uploadFile(selectedFile);
+    }
+  }
 
-  //     setState(() {
-  //       incorporationCertificateLink = map['key'];
-  //     });
-  //     print(incorporationCertificateLink);
+  Future uploadFile(PickedFile orFile) async {
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    firebase_storage.Reference reference =
+        firebase_storage.FirebaseStorage.instance.ref().child(fileName);
 
-  //     dio.put(
-  //       map['s3PutObjectUrl'],
-  //       data: incorporationCertificate.readStream,
-  //       options: Options(
-  //         contentType: mimeType,
-  //         headers: {"Content-Length": incorporationCertificate.size},
-  //       ),
-  //       onSendProgress: (int sentBytes, int totalBytes) {
-  //         double progressPercent = sentBytes / totalBytes * 100;
-  //         print("$progressPercent %");
-  //       },
-  //     ).then((response) {
-  //       print(response);
-  //       print(response.statusCode);
-  //       dio.post(
-  //           'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/kyc/info?type=packersAndMoversSP',
-  //           data: {
-  //             "type": "packersAndMoversSP",
-  //             "id": _auth.currentUser.uid,
-  //             "mobile": _auth.currentUser.phoneNumber,
-  //             "tenantUsecase": "pam",
-  //             "tenantSet_id": "PAM01",
-  //             "incorporationCertificate":
-  //                 incorporationCertificateLink.toString()
-  //           }).then((response) {
-  //         print(response);
-  //         setState(() {
-  //           uploadingImages = false;
-  //         });
-  //       });
-  //     }).catchError((error) {
-  //       setState(() {
-  //         uploadingImages = false;
-  //       });
-  //       print(error);
-  //     });
-  //   });
-  // }
+    late File compressedFile;
+    if (!kIsWeb)
+      compressedFile = await FlutterNativeImage.compressImage(orFile.path,
+          quality: 80, percentage: 90);
 
-  // uploadDisplayImage() async {
-  //   setState(() {
-  //     uploadingImages = true;
-  //   });
-  //   final mimeType = lookupMimeType(displayImage.name);
-  //   await dio.post(
-  //       'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/kyc/document?type=packersAndMovers',
-  //       data: {
-  //         "contentType": mimeType,
-  //         "metaData": {
-  //           "contentType": mimeType,
-  //         },
-  //       }).then((response) async {
-  //     print(response);
-  //     Map<String, dynamic> map = json.decode(response.toString());
-  //     setState(() {
-  //       displayImageLink = map['key'];
-  //     });
-  //     print(displayImageLink);
-  //     print(mimeType);
+    try {
+      firebase_storage.UploadTask uploadTask;
 
-  //     dio.put(
-  //       map['s3PutObjectUrl'],
-  //       data: displayImage.readStream,
-  //       options: Options(
-  //         contentType: mimeType,
-  //         headers: {
-  //           "Content-Length": displayImage.size,
-  //         },
-  //       ),
-  //       onSendProgress: (int sentBytes, int totalBytes) {
-  //         double progressPercent = sentBytes / totalBytes * 100;
-  //         print("$progressPercent %");
-  //       },
-  //     ).then((response) {
-  //       print(response);
-  //       print(response.statusCode);
-  //       dio.post(
-  //           'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/kyc/info?type=packersAndMoversSP',
-  //           data: {
-  //             "type": "packersAndMoversSP",
-  //             "id": _auth.currentUser.uid,
-  //             "mobile": _auth.currentUser.phoneNumber,
-  //             "tenantUsecase": "pam",
-  //             "tenantSet_id": "PAM01",
-  //             "displayImage": displayImageLink.toString()
-  //           }).then((response) {
-  //         print(response);
-  //       });
-  //       dio.post(
-  //           'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/serviceprovidercost',
-  //           data: {
-  //             "serviceProviderId": _auth.currentUser.uid,
-  //             "mobile": _auth.currentUser.phoneNumber,
-  //             "tenantUsecase": "pam",
-  //             "tenantSet_id": "PAM01",
-  //             "selfInfo": {"displayImage": displayImageLink.toString()}
-  //           }).then((value) => print(value));
-  //       print(response);
-  //       setState(() {
-  //         uploadingImages = false;
-  //       });
-  //     }).catchError((error) {
-  //       setState(() {
-  //         uploadingImages = false;
-  //       });
-  //       print(error);
-  //     });
-  //   });
-  // }
+      final metadata = firebase_storage.SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {'picked-file-path': orFile.path});
 
-  // uploadOtherImages() async {
-  //   for (var i = 0; i < otherImages.length; i++) {
-  //     setState(() {
-  //       uploadingImages = true;
-  //     });
-  //     final mimeType = lookupMimeType(otherImages[i].name);
-  //     await dio.post(
-  //         'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/kyc/document?type=packersAndMovers',
-  //         data: {
-  //           "contentType": mimeType,
-  //           "metaData": {
-  //             "contentType": mimeType,
-  //           },
-  //         }).then((response) async {
-  //       print(response);
-  //       Map<String, dynamic> map = json.decode(response.toString());
-  //       setState(() {
-  //         otherImagesLink.add(map['key']);
-  //       });
-  //       print(otherImagesLink[i]);
-  //       dio.put(
-  //         map['s3PutObjectUrl'],
-  //         data: otherImages[i].readStream,
-  //         options: Options(
-  //           contentType: mimeType,
-  //           headers: {
-  //             "Content-Length": otherImages[i].size,
-  //           },
-  //         ),
-  //         onSendProgress: (int sentBytes, int totalBytes) {
-  //           double progressPercent = sentBytes / totalBytes * 100;
-  //           print("$progressPercent %");
-  //         },
-  //       ).then((response) {
-  //         print(response);
+      if (kIsWeb)
+        uploadTask = reference.putData(await orFile.readAsBytes(), metadata);
+      else
+        uploadTask = reference.putFile(compressedFile);
 
-  //         print(response.statusCode);
-  //         dio.post(
-  //             'https://t2v0d33au7.execute-api.ap-south-1.amazonaws.com/Staging01/kyc/info?type=packersAndMoversSP',
-  //             data: {
-  //               "type": "packersAndMoversSP",
-  //               "id": _auth.currentUser.uid,
-  //               "mobile": _auth.currentUser.phoneNumber,
-  //               "tenantUsecase": "pam",
-  //               "tenantSet_id": "PAM01",
-  //               "otherImages${i.toString()}": otherImagesLink[i].toString()
-  //             }).then((response) {
-  //           print(response);
-  //           setState(() {
-  //             uploadingImages = false;
-  //           });
-  //         });
-  //       }).catchError((error) {
-  //         setState(() {
-  //           uploadingImages = false;
-  //         });
-  //         print(error);
-  //       });
-  //     });
-  //   }
-  // }
+      firebase_storage.TaskSnapshot storageTaskSnapshot = await uploadTask;
+
+      storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
+        imageUrl = downloadUrl;
+        setState(() {
+          isLoading = false;
+          //onSendMessage(imageUrl, 1);
+        });
+      }, onError: (err) {
+        setState(() {
+          isLoading = false;
+        });
+        displaySnackBar("This File is not an Image", context);
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+  }
 }
