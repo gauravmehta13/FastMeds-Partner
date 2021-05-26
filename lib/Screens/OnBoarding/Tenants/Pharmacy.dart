@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Constants/Districts.dart';
@@ -12,11 +11,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'dart:convert' as convert;
+import 'package:location/location.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
 import '../../../Fade Route.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:geocoding/geocoding.dart' as geocode;
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -28,6 +28,12 @@ class Pharmacy extends StatefulWidget {
 }
 
 class _PharmacyState extends State<Pharmacy> {
+  Location location = new Location();
+
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionGranted;
+  late LocationData _locationData;
+
   late File imageFile;
   late bool isLoading;
   late String imageUrl = "";
@@ -54,6 +60,32 @@ class _PharmacyState extends State<Pharmacy> {
     super.initState();
     DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
     districtMapping = StateDistrictMapping.getDsitricts();
+    getLocation();
+  }
+
+  getLocation() async {
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await location.getLocation();
+    print(_locationData.latitude!.toString() +
+        _locationData.longitude!.toString());
+    // List<geocode.Placemark> placemark = await geocode.placemarkFromCoordinates(
+    //     _locationData.latitude!, _locationData.latitude!);
+    // print(placemark[0].postalCode);
   }
 
   scrollToTop() {
@@ -91,8 +123,8 @@ class _PharmacyState extends State<Pharmacy> {
                                 companyName.text,
                                 pinCode.text,
                                 streetAddress.text,
-                                districtName,
-                                stateName,
+                                pickupData[0]["District"],
+                                pickupData[0]["State"],
                                 phone.text,
                                 imageUrl);
                         setState(() {
@@ -152,7 +184,7 @@ class _PharmacyState extends State<Pharmacy> {
                                       child: Image.asset("assets/kyc.png")),
                                   box10,
                                   Text(
-                                    "Verify Your Identity   ",
+                                    "Lets build your dedicated profile",
                                     style: TextStyle(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 20),
@@ -227,297 +259,179 @@ class _PharmacyState extends State<Pharmacy> {
                                   SizedBox(
                                     height: 20,
                                   ),
-                                  Column(
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Autocomplete<StateDistrictMapping>(
-                                            displayStringForOption: (option) =>
-                                                option.district,
-                                            fieldViewBuilder: (context,
-                                                    textEditingController,
-                                                    focusNode,
-                                                    onFieldSubmitted) =>
-                                                TextFormField(
-                                                    autovalidateMode:
-                                                        AutovalidateMode
-                                                            .onUserInteraction,
-                                                    validator: (value) {
-                                                      if (value == null ||
-                                                          value.isEmpty) {
-                                                        return 'Required';
-                                                      }
-                                                      return null;
-                                                    },
-                                                    scrollPadding:
-                                                        const EdgeInsets.only(
-                                                            bottom: 150.0),
-                                                    controller:
-                                                        textEditingController,
-                                                    onTap: () {
-                                                      textEditingController
-                                                          .clear();
-                                                      setState(() {
-                                                        stateName = "";
-                                                      });
-                                                    },
-                                                    focusNode: focusNode,
-                                                    decoration:
-                                                        textfieldDecoration(
-                                                            "Select City",
-                                                            FontAwesomeIcons
-                                                                .city)),
-                                            optionsBuilder: (textEditingValue) {
-                                              if (textEditingValue.text == '') {
-                                                return districtMapping;
-                                              }
-                                              return districtMapping.where((s) {
-                                                return s.district
-                                                    .toLowerCase()
-                                                    .contains(textEditingValue
-                                                        .text
-                                                        .toLowerCase());
-                                              });
-                                            },
-                                            onSelected: (StateDistrictMapping
-                                                selection) {
-                                              final FocusScopeNode
-                                                  currentScope =
-                                                  FocusScope.of(context);
-                                              if (!currentScope
-                                                      .hasPrimaryFocus &&
-                                                  currentScope.hasFocus) {
-                                                FocusManager
-                                                    .instance.primaryFocus!
-                                                    .unfocus();
-                                              }
-                                              print(selection.district);
-                                              print(selection.districtID);
-                                              setState(() {
-                                                districtName = selection
-                                                    .district
-                                                    .toString();
-                                                stateName =
-                                                    selection.state.toString();
-                                              });
-                                              scrollToTop();
-                                            },
-                                          ),
-                                          if (stateName.isNotEmpty)
-                                            Container(
-                                                padding:
-                                                    EdgeInsets.only(top: 0),
-                                                alignment:
-                                                    Alignment.centerRight,
-                                                child: Text(
-                                                  stateName,
-                                                  style:
-                                                      TextStyle(fontSize: 12),
-                                                ))
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      box20,
-                                      new TextFormField(
-                                        autovalidateMode:
-                                            AutovalidateMode.onUserInteraction,
-                                        controller: streetAddress,
-                                        decoration: new InputDecoration(
-                                            isDense: true, // Added this
-                                            prefixIcon:
-                                                Icon(FontAwesomeIcons.building),
-                                            contentPadding: EdgeInsets.all(15),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(4)),
-                                              borderSide: BorderSide(
-                                                width: 1,
-                                                color: Color(0xFF2821B5),
-                                              ),
-                                            ),
-                                            border: new OutlineInputBorder(
-                                                borderSide: new BorderSide(
-                                                    color: Colors.grey[200]!)),
-                                            labelText: "Street Address"),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Required';
+                                  TextFormField(
+                                    keyboardType: TextInputType.number,
+                                    maxLength: 6,
+                                    textInputAction: TextInputAction.next,
+                                    controller: pinCode,
+                                    onChanged: (pin) async {
+                                      var pickupPin = int.tryParse(pin);
+                                      var count = 0, temp = pickupPin;
+                                      while (temp! > 0) {
+                                        count++;
+                                        temp = (temp / 10).floor();
+                                      }
+                                      print(count);
+                                      setState(() {
+                                        pickupOptions = [];
+                                      });
+                                      if (count == 6) {
+                                        getPinData() async {
+                                          var response = await dio.get(
+                                              "https://api.postalpincode.in/pincode/$pin");
+                                          print(response.data);
+                                          var data = response.data;
+                                          setState(() {
+                                            pickupOptions = [];
+                                          });
+                                          for (int i = 0;
+                                              i < data[0]["PostOffice"].length;
+                                              i++) {
+                                            pickupOptions.add(data[0]
+                                                ["PostOffice"][i]["Name"]);
                                           }
-                                          return null;
-                                        },
+
+                                          setState(() {
+                                            pickupData = data[0]["PostOffice"];
+                                            pickupOptions = pickupOptions;
+                                          });
+                                          print(pickupOptions);
+                                          print(pickupData);
+                                        }
+
+                                        getPinData();
+                                      }
+                                    },
+                                    decoration: new InputDecoration(
+                                        isDense: true,
+                                        counterText: "",
+                                        prefixIcon: Icon(
+                                            FontAwesomeIcons.locationArrow),
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(4)),
+                                          borderSide: BorderSide(
+                                            width: 1,
+                                            color: Color(0xFF2821B5),
+                                          ),
+                                        ),
+                                        border: new OutlineInputBorder(
+                                            borderSide: new BorderSide(
+                                                color: Colors.grey[200]!)),
+                                        labelText: "Pin Code"),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  box5,
+                                  Container(
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(pickupData != null
+                                        ? "${pickupData[0]["District"]}, ${pickupData[0]["State"]}"
+                                        : ""),
+                                  ),
+                                  box10,
+                                  if (pickupOptions.length != 0)
+                                    DropdownSearch<String>(
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Required';
+                                        }
+                                        return null;
+                                      },
+                                      dropdownSearchDecoration: InputDecoration(
+                                        prefixIcon: Icon(FontAwesomeIcons.city),
+                                        isDense: true, // Added this
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 3, horizontal: 5),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(4)),
+                                          borderSide: BorderSide(
+                                            width: 1,
+                                            color: Color(0xFF2821B5),
+                                          ),
+                                        ),
+                                        border: new OutlineInputBorder(
+                                            borderSide: new BorderSide(
+                                                color: Color(0xFF23232))),
                                       ),
-                                      box20,
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                              child: TextFormField(
-                                            keyboardType: TextInputType.number,
-                                            maxLength: 6,
-                                            textInputAction:
-                                                TextInputAction.next,
-                                            controller: pinCode,
-                                            onChanged: (pin) async {
-                                              var pickupPin = int.tryParse(pin);
-                                              var count = 0, temp = pickupPin;
-                                              while (temp! > 0) {
-                                                count++;
-                                                temp = (temp / 10).floor();
-                                              }
-                                              print(count);
-                                              setState(() {
-                                                pickupOptions = [];
-                                              });
-                                              if (count == 6) {
-                                                getPinData() async {
-                                                  var response = await dio.get(
-                                                      "https://api.postalpincode.in/pincode/$pin");
-                                                  print(response.data);
-                                                  var data = json
-                                                      .decode(response.data);
-                                                  setState(() {
-                                                    pickupOptions = [];
-                                                  });
-                                                  for (int i = 0;
-                                                      i <
-                                                          data[0]["PostOffice"]
-                                                              .length;
-                                                      i++) {
-                                                    pickupOptions.add(data[0]
-                                                            ["PostOffice"][i]
-                                                        ["Name"]);
-                                                  }
-
-                                                  setState(() {
-                                                    pickupData =
-                                                        data[0]["PostOffice"];
-                                                    pickupOptions =
-                                                        pickupOptions;
-                                                  });
-                                                  print(pickupOptions);
-                                                  print(pickupData);
-                                                }
-
-                                                getPinData();
-                                              }
-                                            },
-                                            decoration: new InputDecoration(
-                                                isDense: true,
-                                                counterText: "",
-                                                helperText: pickupData != null
-                                                    ? "${pickupData[0]["District"]}, ${pickupData[0]["State"]}"
-                                                    : "", // Added this
-                                                prefixIcon: Icon(
-                                                    FontAwesomeIcons
-                                                        .locationArrow),
-                                                contentPadding:
-                                                    EdgeInsets.all(15),
-                                                focusedBorder:
-                                                    OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(4)),
-                                                  borderSide: BorderSide(
-                                                    width: 1,
-                                                    color: Color(0xFF2821B5),
+                                      mode: Mode.MENU,
+                                      showSelectedItem: true,
+                                      items: pickupOptions,
+                                      label: "Select Area",
+                                      hint: "Your Area name",
+                                      onChanged: (e) {},
+                                    ),
+                                  box20,
+                                  new TextFormField(
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
+                                    controller: streetAddress,
+                                    decoration: new InputDecoration(
+                                        isDense: true, // Added this
+                                        prefixIcon:
+                                            Icon(FontAwesomeIcons.building),
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(4)),
+                                          borderSide: BorderSide(
+                                            width: 1,
+                                            color: Color(0xFF2821B5),
+                                          ),
+                                        ),
+                                        border: new OutlineInputBorder(
+                                            borderSide: new BorderSide(
+                                                color: Colors.grey[200]!)),
+                                        labelText: "Street Address"),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  box20,
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Upload Image :",
+                                        style:
+                                            TextStyle(color: Colors.grey[700]),
+                                      ),
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                      uploadingImage
+                                          ? CircularProgressIndicator()
+                                          : imageUrl != ""
+                                              ? SizedBox(
+                                                  height: 100,
+                                                  width: 100,
+                                                  child: Image.network(
+                                                    imageUrl,
+                                                    width: 100,
+                                                    height: 100,
                                                   ),
-                                                ),
-                                                border: new OutlineInputBorder(
-                                                    borderSide: new BorderSide(
-                                                        color:
-                                                            Colors.grey[200]!)),
-                                                labelText: "Pin Code"),
-                                            validator: (value) {
-                                              if (value == null ||
-                                                  value.isEmpty) {
-                                                return 'Required';
-                                              }
-                                              return null;
-                                            },
-                                          )),
-                                          if (pickupOptions.length != 0)
-                                            Column(
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      EdgeInsets.only(left: 5),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            5.0),
-                                                    border: Border.all(
-                                                        color: Colors.grey,
-                                                        style:
-                                                            BorderStyle.solid,
-                                                        width: 0.80),
-                                                  ),
-                                                  child: DropdownSearch<String>(
-                                                    // showSearchBox: true,
-                                                    mode: Mode.MENU,
-                                                    showSelectedItem: true,
-                                                    items: pickupOptions,
-                                                    label: "Select State",
-                                                    hint: "Your State name",
-                                                    // popupItemDisabled: (String s) => s.startsWith('I'),
-                                                    onChanged: (e) {},
-                                                  ),
-                                                  // child: DropDown(
-                                                  //   showUnderline: false,
-                                                  //   items: pickupOptions,
-                                                  //   hint: Text("Select Pickup Area"),
-                                                  //   onChanged: print,
-                                                  // ),
-                                                ),
-                                                SizedBox(
-                                                  height: 22,
                                                 )
-                                              ],
-                                            )
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            "Upload Image :",
-                                            style: TextStyle(
-                                                color: Colors.grey[700]),
-                                          ),
-                                          SizedBox(
-                                            width: 20,
-                                          ),
-                                          uploadingImage
-                                              ? CircularProgressIndicator()
-                                              : imageUrl != ""
-                                                  ? SizedBox(
-                                                      height: 100,
-                                                      width: 100,
-                                                      child: Image.network(
-                                                        imageUrl,
-                                                        width: 100,
-                                                        height: 100,
-                                                      ),
-                                                    )
-                                                  : RawMaterialButton(
-                                                      onPressed: () {
-                                                        getImage();
-                                                      },
-                                                      elevation: 0,
-                                                      fillColor:
-                                                          Color(0xFFf9a825)
-                                                              .withOpacity(0.3),
-                                                      child: Icon(
-                                                          FontAwesomeIcons
-                                                              .upload),
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          10)))
-                                        ],
-                                      )
+                                              : RawMaterialButton(
+                                                  onPressed: () {
+                                                    getImage();
+                                                  },
+                                                  elevation: 0,
+                                                  fillColor: Color(0xFFf9a825)
+                                                      .withOpacity(0.3),
+                                                  child: Icon(
+                                                      FontAwesomeIcons.upload),
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10)))
                                     ],
                                   ),
                                 ],

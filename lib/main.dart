@@ -1,4 +1,3 @@
-import 'package:fastmeds/Screens/Home%20Page.dart';
 import 'package:fastmeds/Auth/onboarding_screen.dart';
 import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
 import 'package:fastmeds/Screens/Profile.dart';
@@ -60,7 +59,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return loading
+    return !loading
         ? Container(child: Center(child: CircularProgressIndicator()))
         : MaterialApp(
             debugShowCheckedModeBanner: false,
