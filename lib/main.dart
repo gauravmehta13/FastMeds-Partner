@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'Constants/Constants.dart';
-import 'Screens/OnBoarding/Pharmacy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

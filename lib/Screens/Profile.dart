@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Screens/Drawer.dart';
-import 'package:fastmeds/Screens/OnBoarding/Pharmacy.dart';
 import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/components/search_bar.dart';

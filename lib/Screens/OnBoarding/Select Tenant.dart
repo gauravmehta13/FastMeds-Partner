@@ -3,12 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../Fade Route.dart';
-import 'Ambulance.dart';
-import 'Diagnostic Labs.dart';
-import 'Volunteer.dart';
-import 'Doctors.dart';
-import 'Hospital.dart';
-import 'Pharmacy.dart';
+import 'Tenants/Ambulance.dart';
+import 'Tenants/Diagnostic Labs.dart';
+import 'Tenants/Volunteer.dart';
+import 'Tenants/Doctor.dart';
+import 'Tenants/Hospital.dart';
+import 'Tenants/Pharmacy.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -121,7 +121,7 @@ class _SelectTenantState extends State<SelectTenant> {
 }
 
 List gridData = [
-  {"title": "Doctor", "page": Doctors(), "icon": FontAwesomeIcons.stethoscope},
+  {"title": "Doctor", "page": Doctor(), "icon": FontAwesomeIcons.stethoscope},
   {"title": "Hospital", "page": Hospital(), "icon": FontAwesomeIcons.hospital},
   {
     "title": "Volunteer",
@@ -136,7 +136,7 @@ List gridData = [
   {"title": "Pharmacy", "page": Pharmacy(), "icon": FontAwesomeIcons.pills},
   {
     "title": "Diagnostic\nLabs",
-    "page": Diagnostics(),
+    "page": DiagnosticLab(),
     "icon": FontAwesomeIcons.thermometerThreeQuarters
   },
 ];

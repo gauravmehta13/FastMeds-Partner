@@ -1,5 +1,4 @@
 import 'package:fastmeds/Constants/Constants.dart';
-import 'package:fastmeds/Screens/OnBoarding/Pharmacy.dart';
 import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
 import 'package:fastmeds/Screens/Profile.dart';
 import 'package:fastmeds/models/database.dart';

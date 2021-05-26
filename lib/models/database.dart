@@ -11,7 +11,7 @@ class DatabaseService {
   }
 
   Future updatePharmacyData(String shopName, String pin, String address,
-      String city, String state, String phone) async {
+      String city, String state, String phone, String imgUrl) async {
     await FirebaseFirestore.instance.collection("Pharmacy").doc(uid).set({
       'shopName': shopName,
       'phone': phone,
@@ -19,6 +19,7 @@ class DatabaseService {
       'state': state,
       'address': address,
       "pin": pin,
+      "imgUrl": imgUrl
     });
   }
 
@@ -70,9 +71,9 @@ class DatabaseService {
     });
   }
 
-  Future updateConsultationData(String shopName, String gstNo, String address,
+  Future updateDiagnoticLabsData(String shopName, String gstNo, String address,
       String city, String state, String phone) async {
-    await FirebaseFirestore.instance.collection("Consultation").doc(uid).set({
+    await FirebaseFirestore.instance.collection("DiagnoticLabs").doc(uid).set({
       'shopName': shopName,
       'phone': phone,
       'city': city,

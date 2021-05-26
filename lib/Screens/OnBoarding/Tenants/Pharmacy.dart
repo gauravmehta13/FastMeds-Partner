@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Constants/Districts.dart';
 import 'package:fastmeds/Screens/Profile.dart';
@@ -16,7 +15,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:convert' as convert;
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
-import '../../Fade Route.dart';
+import '../../../Fade Route.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -30,7 +30,7 @@ class Pharmacy extends StatefulWidget {
 class _PharmacyState extends State<Pharmacy> {
   late File imageFile;
   late bool isLoading;
-  late String imageUrl;
+  late String imageUrl = "";
   var pickupData;
   List<String> pickupOptions = [];
   var dio = Dio();
@@ -38,20 +38,21 @@ class _PharmacyState extends State<Pharmacy> {
   bool loading = false;
   bool sendingData = false;
   bool kycCompleted = false;
-  String districtName = "";
-  String stateName = "";
+  late String districtName = "";
+  late String stateName = "";
   List<StateDistrictMapping> districtMapping = [];
   final formKey = GlobalKey<FormState>();
   var companyName = new TextEditingController();
   var streetAddress = new TextEditingController();
   var pinCode = new TextEditingController();
   var phone = new TextEditingController();
-  bool uploadingImages = false;
+  bool uploadingImage = false;
   final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
     districtMapping = StateDistrictMapping.getDsitricts();
   }
 
@@ -74,10 +75,14 @@ class _PharmacyState extends State<Pharmacy> {
                 primary: Color(0xFFf9a825), // background
                 onPrimary: Colors.white, // foreground
               ),
-              onPressed: loading == true || uploadingImages == true
+              onPressed: loading == true || uploadingImage == true
                   ? null
                   : () async {
                       if (formKey.currentState!.validate()) {
+                        if (imageUrl == "") {
+                          displaySnackBar("Please Upload Image", context);
+                          return;
+                        }
                         setState(() {
                           sendingData = true;
                         });
@@ -88,7 +93,8 @@ class _PharmacyState extends State<Pharmacy> {
                                 streetAddress.text,
                                 districtName,
                                 stateName,
-                                phone.text);
+                                phone.text,
+                                imageUrl);
                         setState(() {
                           sendingData = false;
                         });
@@ -98,7 +104,7 @@ class _PharmacyState extends State<Pharmacy> {
                         );
                       }
                     },
-              child: sendingData == true || uploadingImages == true
+              child: sendingData == true || uploadingImage == true
                   ? Column(
                       children: [
                         Text(""),
@@ -447,6 +453,22 @@ class _PharmacyState extends State<Pharmacy> {
                                                             BorderStyle.solid,
                                                         width: 0.80),
                                                   ),
+                                                  child: DropdownSearch<String>(
+                                                    // showSearchBox: true,
+                                                    mode: Mode.MENU,
+                                                    showSelectedItem: true,
+                                                    items: states,
+                                                    label: "Select State",
+                                                    hint: "Your State name",
+                                                    // popupItemDisabled: (String s) => s.startsWith('I'),
+                                                    onChanged: (e) {},
+                                                    validator: (String item) {
+                                                      if (item == null)
+                                                        return "Required";
+                                                      else
+                                                        return null;
+                                                    },
+                                                  ),
                                                   // child: DropDown(
                                                   //   showUnderline: false,
                                                   //   items: pickupOptions,
@@ -464,27 +486,42 @@ class _PharmacyState extends State<Pharmacy> {
                                       Row(
                                         children: [
                                           Text(
-                                            "Shop Image :\n(Optional)",
+                                            "Upload Image :",
                                             style: TextStyle(
                                                 color: Colors.grey[700]),
                                           ),
                                           SizedBox(
                                             width: 20,
                                           ),
-                                          RawMaterialButton(
-                                              onPressed: () {
-                                                displaySnackBar(
-                                                    "Coming Soon", context);
-                                              },
-                                              elevation: 0,
-                                              fillColor: Color(0xFFf9a825)
-                                                  .withOpacity(0.3),
-                                              child:
-                                                  Icon(FontAwesomeIcons.upload),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10)))
+                                          uploadingImage
+                                              ? CircularProgressIndicator()
+                                              : imageUrl != ""
+                                                  ? SizedBox(
+                                                      height: 100,
+                                                      width: 100,
+                                                      child: Image.network(
+                                                        imageUrl,
+                                                        width: 100,
+                                                        height: 100,
+                                                      ),
+                                                    )
+                                                  : RawMaterialButton(
+                                                      onPressed: () {
+                                                        getImage();
+                                                      },
+                                                      elevation: 0,
+                                                      fillColor:
+                                                          Color(0xFFf9a825)
+                                                              .withOpacity(0.3),
+                                                      child: Icon(
+                                                          FontAwesomeIcons
+                                                              .upload),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)))
                                         ],
                                       )
                                     ],
@@ -539,29 +576,14 @@ class _PharmacyState extends State<Pharmacy> {
   //   }
   // }
 
-  Future getImage(int index) async {
+  Future getImage() async {
     PickedFile selectedFile;
 
-    if (kIsWeb) {
-      //selectedFile=await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-      selectedFile =
-          (await ImagePicker().getImage(source: ImageSource.gallery))!;
-    } else {
-      if (index == 0)
-        selectedFile =
-            (await ImagePicker().getImage(source: ImageSource.gallery))!;
-      else
-        selectedFile =
-            (await ImagePicker().getImage(source: ImageSource.camera))!;
-
-      //imageFile =File(selectedFile.path);
-
-    }
+    selectedFile = (await ImagePicker().getImage(source: ImageSource.gallery))!;
 
     if (selectedFile != null) {
       setState(() {
-        //orFile=selectedFile;
-        isLoading = true;
+        uploadingImage = true;
       });
       uploadFile(selectedFile);
     }
@@ -593,15 +615,15 @@ class _PharmacyState extends State<Pharmacy> {
 
       storageTaskSnapshot.ref.getDownloadURL().then((downloadUrl) {
         imageUrl = downloadUrl;
+        print(downloadUrl);
         setState(() {
-          isLoading = false;
-          //onSendMessage(imageUrl, 1);
+          uploadingImage = false;
         });
       }, onError: (err) {
         setState(() {
-          isLoading = false;
+          uploadingImage = false;
         });
-        displaySnackBar("This File is not an Image", context);
+        displaySnackBar("Error Uploading Image", context);
       });
     } catch (e) {
       print(e.toString());
