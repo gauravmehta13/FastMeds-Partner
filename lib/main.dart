@@ -1,5 +1,6 @@
 import 'package:fastmeds/Screens/Home%20Page.dart';
 import 'package:fastmeds/Auth/onboarding_screen.dart';
+import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
 import 'package:fastmeds/Screens/Profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'Constants/Constants.dart';
-import 'Screens/OnBoarding/Mandatory KYC.dart';
+import 'Screens/OnBoarding/Pharmacy.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +77,6 @@ class _MyAppState extends State<MyApp> {
               accentColor: primaryColor,
               backgroundColor: primaryColor,
             ),
-            home: home);
+            home: SelectTenant());
   }
 }

@@ -1,5 +1,6 @@
 import 'package:fastmeds/Constants/Constants.dart';
-import 'package:fastmeds/Screens/OnBoarding/Mandatory%20KYC.dart';
+import 'package:fastmeds/Screens/OnBoarding/Pharmacy.dart';
+import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
 import 'package:fastmeds/Screens/Profile.dart';
 import 'package:fastmeds/models/database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -120,10 +121,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         await _auth.signInWithCredential(credential).then((value) async {
           print(value.additionalUserInfo!.isNewUser);
           if (value.additionalUserInfo!.isNewUser) {
-            await DatabaseService(_auth.currentUser!.uid)
-                .updateUserData("", "", "", "", "", "");
+            await DatabaseService(_auth.currentUser!.uid).updateUserData("");
             Navigator.pushReplacement(context,
-                MaterialPageRoute(builder: (context) => MandatoryKYC()));
+                MaterialPageRoute(builder: (context) => SelectTenant()));
           } else {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (context) => HomePage()));

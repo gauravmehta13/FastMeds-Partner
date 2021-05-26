@@ -14,14 +14,14 @@ import '../../Fade Route.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
-class MandatoryKYC extends StatefulWidget {
+class Pharmacy extends StatefulWidget {
   final edit;
-  MandatoryKYC({this.edit});
+  Pharmacy({this.edit});
   @override
-  _MandatoryKYCState createState() => _MandatoryKYCState();
+  _PharmacyState createState() => _PharmacyState();
 }
 
-class _MandatoryKYCState extends State<MandatoryKYC> {
+class _PharmacyState extends State<Pharmacy> {
   var dio = Dio();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool loading = false;
@@ -78,7 +78,7 @@ class _MandatoryKYCState extends State<MandatoryKYC> {
                           sendingData = true;
                         });
                         await DatabaseService(_auth.currentUser!.uid)
-                            .updateUserData(
+                            .updatePharmacyData(
                                 companyName.text,
                                 gstNo.text,
                                 streetAddress.text,
@@ -160,7 +160,7 @@ class _MandatoryKYCState extends State<MandatoryKYC> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          "85% customers prefer to select a Shopkeeper with a complete profile.",
+                                          "85% customers prefer to select a Pharmacy with a complete profile.",
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             color: Color(0xFF2f7769),
