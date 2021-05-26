@@ -457,17 +457,11 @@ class _PharmacyState extends State<Pharmacy> {
                                                     // showSearchBox: true,
                                                     mode: Mode.MENU,
                                                     showSelectedItem: true,
-                                                    items: states,
+                                                    items: pickupOptions,
                                                     label: "Select State",
                                                     hint: "Your State name",
                                                     // popupItemDisabled: (String s) => s.startsWith('I'),
                                                     onChanged: (e) {},
-                                                    validator: (String item) {
-                                                      if (item == null)
-                                                        return "Required";
-                                                      else
-                                                        return null;
-                                                    },
                                                   ),
                                                   // child: DropDown(
                                                   //   showUnderline: false,
