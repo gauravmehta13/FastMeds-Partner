@@ -2,13 +2,13 @@ import 'package:fastmeds/Constants/Constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../../Fade Route.dart';
-import 'Tenants/Ambulance.dart';
-import 'Tenants/Diagnostic Labs.dart';
-import 'Tenants/Volunteer.dart';
-import 'Tenants/Doctor.dart';
-import 'Tenants/Hospital.dart';
-import 'Tenants/Pharmacy.dart';
+import '../Fade Route.dart';
+import 'Ambulance/Ambulance Onboarding..dart';
+import 'Diagnostic Labs/Diagnostic Lab Onboarding..dart';
+import 'Volunteer/Volunteer Onboarding.dart';
+import 'Doctor/Doctor  Onboarding..dart';
+import 'Hospital/Hospital Onboarding..dart';
+import 'Pharmacy/Pharmacy Onboarding..dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -41,11 +41,11 @@ class _SelectTenantState extends State<SelectTenant> {
                     CircleAvatar(
                         backgroundColor: Colors.grey[300],
                         backgroundImage: NetworkImage(_auth
-                                .currentUser!.photoURL ??
+                                .currentUser?.photoURL ??
                             "https://i.pinimg.com/originals/51/f6/fb/51f6fb256629fc755b8870c801092942.png")),
                     box20,
                     Text(
-                      "Welcome ${_auth.currentUser!.displayName!.split(" ")[0]},",
+                      "Welcome ${_auth.currentUser?.displayName?.split(" ")[0] ?? ""},",
                       style: TextStyle(
                         fontSize: 18,
                         color: primaryColor,
@@ -133,7 +133,11 @@ List gridData = [
     "page": Ambulance(),
     "icon": FontAwesomeIcons.ambulance
   },
-  {"title": "Pharmacy", "page": Pharmacy(), "icon": FontAwesomeIcons.pills},
+  {
+    "title": "Pharmacy",
+    "page": PharmacyOnBoarding(),
+    "icon": FontAwesomeIcons.pills
+  },
   {
     "title": "Diagnostic\nLabs",
     "page": DiagnosticLab(),

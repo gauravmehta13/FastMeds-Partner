@@ -101,21 +101,6 @@ class _MyDrawerState extends State<MyDrawer> {
                     size: 18,
                   ),
                 ),
-              Container(
-                color: primaryColor,
-                width: double.maxFinite,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Center(
-                    child: Text("Powered By DevsEra",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        )),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

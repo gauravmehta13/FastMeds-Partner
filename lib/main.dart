@@ -1,12 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fastmeds/Auth/onboarding_screen.dart';
-import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
-import 'package:fastmeds/Screens/Profile.dart';
+import 'package:fastmeds/Screens/Select%20Tenant.dart';
+import 'package:fastmeds/Screens/Hospital/Hospital%20Onboarding..dart';
+import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
+import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'Constants/Constants.dart';
+import 'models/tenantData.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,26 +26,38 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool loading = kIsWeb ? true : false;
+  bool loading = true;
   late Widget home =
-      _auth.currentUser != null ? HomePage() : OnboardingScreen();
+      _auth.currentUser != null ? Hospital() : OnboardingScreen();
 
   void initState() {
-    if (kIsWeb) {
+    if (!kIsWeb) {
       final subscription = FirebaseAuth.instance.idTokenChanges().listen(null);
       subscription.onData((event) async {
         if (event != null) {
-          setState(() {
-            home = HomePage();
+          await FirebaseFirestore.instance
+              .collection('Tenant')
+              .doc(_auth.currentUser!.uid)
+              .get()
+              .then((DocumentSnapshot<Object?> querySnapshot) {
+            var data = TenantDetails.fromMap(querySnapshot);
+            if (data.tenant == "Pharmacy") {
+              setState(() {
+                home = PharmacyHome();
+              });
+            } else if (data.tenant == "Pharmacy") {
+            } else if (data.tenant == "Pharmacy") {
+            } else if (data.tenant == "Pharmacy") {
+            } else if (data.tenant == "Pharmacy") {
+            } else if (data.tenant == "Pharmacy") {}
           });
           subscription.cancel();
           setState(() {
             loading = false;
           });
-          print(FirebaseAuth.instance.currentUser);
         } else {
           print("No user yet..");
-          await Future.delayed(Duration(seconds: 4));
+          await Future.delayed(Duration(seconds: kIsWeb ? 4 : 1));
           if (loading) {
             setState(() {
               home = OnboardingScreen();
@@ -59,22 +75,20 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return !loading
-        ? Container(child: Center(child: CircularProgressIndicator()))
-        : MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: 'FastMeds Partner',
-            theme: ThemeData(
-              appBarTheme: Theme.of(context)
-                  .appBarTheme
-                  .copyWith(brightness: Brightness.light),
-              textTheme: GoogleFonts.montserratTextTheme(
-                Theme.of(context).textTheme,
-              ),
-              primaryColor: primaryColor,
-              accentColor: primaryColor,
-              backgroundColor: primaryColor,
-            ),
-            home: SelectTenant());
+    return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'FastMeds Partner',
+        theme: ThemeData(
+          appBarTheme: Theme.of(context)
+              .appBarTheme
+              .copyWith(brightness: Brightness.light),
+          textTheme: GoogleFonts.montserratTextTheme(
+            Theme.of(context).textTheme,
+          ),
+          primaryColor: primaryColor,
+          accentColor: primaryColor,
+          backgroundColor: primaryColor,
+        ),
+        home: loading ? Scaffold(body: Loading()) : home);
   }
 }

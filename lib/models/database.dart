@@ -10,16 +10,32 @@ class DatabaseService {
     });
   }
 
-  Future updatePharmacyData(String shopName, String pin, String address,
-      String city, String state, String phone, String imgUrl) async {
+  Future updatePharmacyData(
+      String pharmacyName,
+      String phone,
+      String pin,
+      String po,
+      String block,
+      String city,
+      String state,
+      String address,
+      String imgUrl,
+      String email,
+      String photoUrl,
+      String name) async {
     await FirebaseFirestore.instance.collection("Pharmacy").doc(uid).set({
-      'shopName': shopName,
+      'pharmacyName': pharmacyName,
       'phone': phone,
       'city': city,
       'state': state,
+      'block': block,
+      'postOffice': po,
       'address': address,
       "pin": pin,
-      "imgUrl": imgUrl
+      "imgUrl": imgUrl,
+      "email": email,
+      "photo": photoUrl,
+      "name": name
     });
   }
 

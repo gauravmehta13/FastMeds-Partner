@@ -13,6 +13,7 @@ var kCategoryTextColor = Color(0xff292685);
 
 textfieldDecoration(label, IconData icon) {
   return InputDecoration(
+      counterText: "",
       prefixIcon: Icon(icon),
       isDense: true, // Added this
       contentPadding: EdgeInsets.all(15),

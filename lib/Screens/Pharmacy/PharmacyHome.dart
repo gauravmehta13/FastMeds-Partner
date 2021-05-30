@@ -1,47 +1,63 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Screens/Drawer.dart';
-import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
+import 'package:fastmeds/Screens/Select%20Tenant.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
-import 'package:fastmeds/components/search_bar.dart';
+import 'package:fastmeds/models/tenantData.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../Fade Route.dart';
+import '../../Fade Route.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
-class HomePage extends StatefulWidget {
+class PharmacyHome extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  _PharmacyHomeState createState() => _PharmacyHomeState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _PharmacyHomeState extends State<PharmacyHome> {
+  CollectionReference pharmacy =
+      FirebaseFirestore.instance.collection('Pharmacy');
+  bool loading = true;
   GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
+  late PharmacyDetails data;
+
+  void initState() {
+    super.initState();
+    getData();
+  }
+
+  getData() async {
+    try {
+      await pharmacy
+          .doc(_auth.currentUser!.uid)
+          .get()
+          .then((DocumentSnapshot<Object?> querySnapshot) {
+        data = PharmacyDetails.fromMap(querySnapshot);
+      });
+      print(data);
+      setState(() {
+        loading = false;
+      });
+    } catch (e) {
+      print(e);
+      setState(() {
+        loading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return new StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection("Shops")
-            .doc(_auth.currentUser!.uid) //ID OF DOCUMENT
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Loading();
-          }
-          dynamic document = snapshot.data;
-          if (document["phone"] == "") {
-            Navigator.pushReplacement(
-              context,
-              FadeRoute(page: SelectTenant()),
-            );
-          }
-          return Scaffold(
-            key: _drawerKey,
-            drawer: MyDrawer(),
-            backgroundColor: kBackgroundColor,
-            body: SafeArea(
+    return Scaffold(
+      key: _drawerKey,
+      drawer: MyDrawer(),
+      backgroundColor: kBackgroundColor,
+      body: loading
+          ? Loading()
+          : SafeArea(
               bottom: false,
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: 30),
@@ -63,9 +79,7 @@ class _HomePageState extends State<HomePage> {
                           padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
                           child: CircleAvatar(
                               backgroundColor: Colors.grey[300],
-                              backgroundImage: NetworkImage(_auth
-                                      .currentUser!.photoURL ??
-                                  "https://i.pinimg.com/originals/51/f6/fb/51f6fb256629fc755b8870c801092942.png")),
+                              backgroundImage: NetworkImage(data.imgUrl)),
                         ),
                       ],
                     ),
@@ -76,7 +90,7 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Hello ${_auth.currentUser!.displayName}",
+                          "Hello ${data.pharmacyName}",
                           style: TextStyle(
                             fontSize: 18,
                             color: kTitleTextColor,
@@ -87,18 +101,13 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                     Text(
-                      document?["shopName"] ?? "",
+                      data.phone,
                       style: TextStyle(fontSize: 20),
                     ),
-                    Text(document["phone"]),
-                    Text(document["gstNo"]),
-                    Text(
-                        "${document!["address"]}, ${document!["city"]}, ${document!["state"]}")
                   ],
                 ),
               ),
             ),
-          );
-        });
+    );
   }
 }

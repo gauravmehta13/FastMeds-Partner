@@ -1,6 +1,6 @@
 import 'package:fastmeds/Constants/Constants.dart';
-import 'package:fastmeds/Screens/OnBoarding/Select%20Tenant.dart';
-import 'package:fastmeds/Screens/Profile.dart';
+import 'package:fastmeds/Screens/Select%20Tenant.dart';
+import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/models/database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    // this.checkAuthentification();
+    //this.checkAuthentification();
   }
 
   bool loading = false;
@@ -123,8 +123,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (context) => SelectTenant()));
           } else {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => HomePage()));
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => SelectTenant()));
           }
           setState(() {
             loading = false;
