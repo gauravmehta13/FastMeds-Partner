@@ -130,7 +130,7 @@ List gridData = [
   },
   {
     "title": "Ambulance",
-    "page": Ambulance(),
+    "page": AmbulanceOnBoarding(),
     "icon": FontAwesomeIcons.ambulance
   },
   {

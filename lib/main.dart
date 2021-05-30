@@ -89,6 +89,6 @@ class _MyAppState extends State<MyApp> {
           accentColor: primaryColor,
           backgroundColor: primaryColor,
         ),
-        home: loading ? Scaffold(body: Loading()) : home);
+        home: loading ? Scaffold(body: Loading()) : SelectTenant());
   }
 }

@@ -17,7 +17,6 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
 import '../../Fade Route.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:geocoding/geocoding.dart' as geocode;
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -34,7 +33,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
   late LocationData _locationData;
-
+  bool gettingPinData = false;
   late File imageFile;
   late bool isLoading;
   late String imageUrl = "";
@@ -59,6 +58,8 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   void initState() {
     super.initState();
     DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
+    DatabaseService(_auth.currentUser!.uid)
+        .updatePharmacyData("", "", "", "", "", "", "", "", "", "", "", "");
     getLocation();
   }
 
@@ -284,6 +285,12 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                               },
                               decoration: new InputDecoration(
                                   isDense: true,
+                                  suffix: gettingPinData
+                                      ? SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator())
+                                      : null,
                                   counterText: "",
                                   prefixIcon:
                                       Icon(FontAwesomeIcons.locationArrow),
@@ -432,6 +439,9 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   }
 
   getPinData(pin) async {
+    setState(() {
+      gettingPinData = true;
+    });
     var response = await dio.get("https://api.postalpincode.in/pincode/$pin");
     print(response.data);
     var data = response.data;
@@ -448,6 +458,9 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     });
     print(pickupOptions);
     print(pickupData);
+    setState(() {
+      gettingPinData = false;
+    });
   }
 
   Future uploadFile(PickedFile orFile) async {
