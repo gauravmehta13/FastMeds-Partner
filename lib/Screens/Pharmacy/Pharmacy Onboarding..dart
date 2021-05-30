@@ -4,7 +4,9 @@ import 'package:fastmeds/Constants/Districts.dart';
 import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/models/database.dart';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +14,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:location/location.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
@@ -29,7 +33,8 @@ class PharmacyOnBoarding extends StatefulWidget {
 
 class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   Location location = new Location();
-
+  late double lat;
+  late double lon;
   late bool _serviceEnabled;
   late PermissionStatus _permissionGranted;
   late LocationData _locationData;
@@ -52,14 +57,19 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   var pinCode = new TextEditingController();
   var phone = new TextEditingController();
   bool uploadingImage = false;
+  late String postOffice;
   final ScrollController scrollController = ScrollController();
+  final geo = Geoflutterfire();
+  var feature1OverflowMode = OverflowMode.clipContent;
+  var feature1EnablePulsingAnimation = false;
+  var ensureKey = GlobalKey<EnsureVisibleState>();
 
   @override
   void initState() {
     super.initState();
     DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
-    DatabaseService(_auth.currentUser!.uid)
-        .updatePharmacyData("", "", "", "", "", "", "", "", "", "", "", "");
+    DatabaseService(_auth.currentUser!.uid).updatePharmacyData(
+        "", "", "", "", "", "", "", "", "", "", "", "", "", 0, 0);
     getLocation();
   }
 
@@ -81,8 +91,11 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     _locationData = await location.getLocation();
     print(_locationData.latitude!.toString());
     print(_locationData.longitude!.toString());
-    getPinCode(_locationData.latitude!.toString(),
-        _locationData.longitude!.toString());
+    setState(() {
+      lat = _locationData.latitude!;
+      lon = _locationData.longitude!;
+    });
+    getPinCode(lat.toString(), lon.toString());
   }
 
   getPinCode(lat, lon) async {
@@ -94,6 +107,19 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     getPinData(int.parse(resp.data["address"]["postcode"].toString()));
   }
 
+  getLatLong(pin) async {
+    var dio = Dio();
+    final resp = await dio.get(
+        "https://nominatim.openstreetmap.org/search?format=json&postalcode=$pin");
+    print(resp.data);
+    var loc = resp.data[0];
+    setState(() {
+      lat = double.tryParse(loc["lat"].toString())!;
+      lon = double.tryParse(loc["lon"].toString())!;
+    });
+    print("Latitude : ${lat.toString()} & Longitude : ${lon.toString()}");
+  }
+
   scrollToTop() {
     scrollController.animateTo(scrollController.position.minScrollExtent,
         duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
@@ -102,6 +128,17 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Pharmacy Registration",
+            style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+          centerTitle: true,
+          actions: [
+            IconButton(onPressed: () {}, icon: Icon(Icons.help_outline))
+          ],
+        ),
         key: _scaffoldKey,
         bottomNavigationBar: Container(
           padding: EdgeInsets.fromLTRB(20, 5, 20, 20),
@@ -119,17 +156,28 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                       if (formKey.currentState!.validate()) {
                         if (imageUrl == "") {
                           displaySnackBar("Please Upload Image", context);
+                          FeatureDiscovery.clearPreferences(context, <String>{
+                            'image',
+                          });
+                          FeatureDiscovery.discoverFeatures(
+                            context,
+                            const <String>{"image"},
+                          );
+
                           return;
                         }
                         setState(() {
                           sendingData = true;
                         });
+                        GeoFirePoint myLocation =
+                            geo.point(latitude: lat, longitude: lon);
+                        print(myLocation.data.toString());
                         await DatabaseService(_auth.currentUser!.uid)
                             .updatePharmacyData(
                           companyName.text,
                           phone.text,
                           pinCode.text,
-                          pickupData[0]["Name"],
+                          postOffice,
                           pickupData[0]["Block"],
                           pickupData[0]["Division"],
                           pickupData[0]["State"],
@@ -138,6 +186,9 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                           _auth.currentUser!.email!,
                           _auth.currentUser!.photoURL!,
                           _auth.currentUser!.displayName!,
+                          myLocation.data,
+                          lat,
+                          lon,
                         );
                         setState(() {
                           sendingData = false;
@@ -182,10 +233,72 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            box10,
-                            SizedBox(
-                                height: 80,
-                                child: Image.asset("assets/kyc.png")),
+                            DescribedFeatureOverlay(
+                              featureId: "image",
+                              tapTarget: Icon(FontAwesomeIcons.camera),
+                              backgroundColor: primaryColor.withOpacity(0.9),
+                              contentLocation: ContentLocation.above,
+                              title: const Text(
+                                'Upload Image of your Pharmacy',
+                                style: TextStyle(backgroundColor: primaryColor),
+                              ),
+                              description: const Text(
+                                'Profile with Images attract more customers',
+                                style: TextStyle(backgroundColor: primaryColor),
+                              ),
+                              //onComplete: action,
+                              onOpen: () async {
+                                print('The overlay is about to be displayed.');
+                                WidgetsBinding.instance!
+                                    .addPostFrameCallback((_) {
+                                  ensureKey.currentState!.ensureVisible(
+                                    preciseAlignment: 0.5,
+                                    duration: const Duration(milliseconds: 400),
+                                  );
+                                });
+
+                                return true;
+                              },
+                              child: EnsureVisible(
+                                key: ensureKey,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    getImage();
+                                  },
+                                  child: Stack(
+                                    children: [
+                                      imageUrl != ""
+                                          ? CircleAvatar(
+                                              radius: 60,
+                                              backgroundColor: Colors.grey[300],
+                                              backgroundImage: NetworkImage(
+                                                imageUrl,
+                                              ))
+                                          : CircleAvatar(
+                                              radius: 60,
+                                              backgroundColor: Colors.grey[300],
+                                              child: uploadingImage
+                                                  ? CircularProgressIndicator()
+                                                  : Image.asset(
+                                                      "assets/pharmacy.png"),
+                                            ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: CircleAvatar(
+                                            backgroundColor: primaryColor,
+                                            radius: 20,
+                                            child: Icon(
+                                              FontAwesomeIcons.camera,
+                                              color: Colors.white,
+                                              size: 16,
+                                            )),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                             box10,
                             Text(
                               "Lets build your dedicated profile",
@@ -280,6 +393,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                                   pickupOptions = [];
                                 });
                                 if (count == 6) {
+                                  getLatLong(pin.toString());
                                   getPinData(pin);
                                 }
                               },
@@ -354,7 +468,11 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                                     items: pickupOptions,
                                     label: "Select Area",
                                     hint: "Your Area name",
-                                    onChanged: (e) {},
+                                    onChanged: (e) {
+                                      setState(() {
+                                        postOffice = e!;
+                                      });
+                                    },
                                   ),
                                 ],
                               ),
@@ -385,38 +503,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                                 }
                                 return null;
                               },
-                            ),
-                            box20,
-                            Row(
-                              children: [
-                                Text(
-                                  "Upload Image :",
-                                  style: TextStyle(color: Colors.grey[700]),
-                                ),
-                                SizedBox(
-                                  width: 20,
-                                ),
-                                uploadingImage
-                                    ? CircularProgressIndicator()
-                                    : imageUrl != ""
-                                        ? CircleAvatar(
-                                            radius: 30,
-                                            backgroundImage: NetworkImage(
-                                              imageUrl,
-                                            ))
-                                        : RawMaterialButton(
-                                            onPressed: () {
-                                              getImage();
-                                            },
-                                            elevation: 0,
-                                            fillColor: Color(0xFFf9a825)
-                                                .withOpacity(0.3),
-                                            child:
-                                                Icon(FontAwesomeIcons.upload),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10)))
-                              ],
                             ),
                           ],
                         ),

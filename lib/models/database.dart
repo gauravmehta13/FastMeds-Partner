@@ -22,7 +22,10 @@ class DatabaseService {
       String imgUrl,
       String email,
       String photoUrl,
-      String name) async {
+      String name,
+      var position,
+      double long,
+      double lat) async {
     await FirebaseFirestore.instance.collection("Pharmacy").doc(uid).set({
       'pharmacyName': pharmacyName,
       'phone': phone,
@@ -35,7 +38,10 @@ class DatabaseService {
       "imgUrl": imgUrl,
       "email": email,
       "photo": photoUrl,
-      "name": name
+      "name": name,
+      'position': position,
+      'lat': lat,
+      'long': long
     });
   }
 

@@ -4,6 +4,7 @@ import 'package:fastmeds/Screens/Select%20Tenant.dart';
 import 'package:fastmeds/Screens/Hospital/Hospital%20Onboarding..dart';
 import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -45,11 +46,11 @@ class _MyAppState extends State<MyApp> {
               setState(() {
                 home = PharmacyHome();
               });
-            } else if (data.tenant == "Pharmacy") {
-            } else if (data.tenant == "Pharmacy") {
-            } else if (data.tenant == "Pharmacy") {
-            } else if (data.tenant == "Pharmacy") {
-            } else if (data.tenant == "Pharmacy") {}
+            } else if (data.tenant == "Ambulance") {
+            } else if (data.tenant == "Hospital") {
+            } else if (data.tenant == "Volunteer") {
+            } else if (data.tenant == "Doctor") {
+            } else if (data.tenant == "DiagnosticLab") {}
           });
           subscription.cancel();
           setState(() {
@@ -75,20 +76,22 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'FastMeds Partner',
-        theme: ThemeData(
-          appBarTheme: Theme.of(context)
-              .appBarTheme
-              .copyWith(brightness: Brightness.light),
-          textTheme: GoogleFonts.montserratTextTheme(
-            Theme.of(context).textTheme,
+    return FeatureDiscovery(
+      child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'FastMeds Partner',
+          theme: ThemeData(
+            appBarTheme: Theme.of(context)
+                .appBarTheme
+                .copyWith(brightness: Brightness.light),
+            textTheme: GoogleFonts.montserratTextTheme(
+              Theme.of(context).textTheme,
+            ),
+            primaryColor: primaryColor,
+            accentColor: primaryColor,
+            backgroundColor: primaryColor,
           ),
-          primaryColor: primaryColor,
-          accentColor: primaryColor,
-          backgroundColor: primaryColor,
-        ),
-        home: loading ? Scaffold(body: Loading()) : SelectTenant());
+          home: loading ? Scaffold(body: Loading()) : SelectTenant()),
+    );
   }
 }

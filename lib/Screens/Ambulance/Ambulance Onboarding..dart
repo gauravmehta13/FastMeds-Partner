@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:location/location.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
@@ -57,6 +58,7 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
   @override
   void initState() {
     super.initState();
+    companyName.text = _auth.currentUser!.displayName!;
     DatabaseService(_auth.currentUser!.uid).updateUserData("Ambulance");
     DatabaseService(_auth.currentUser!.uid).updateAmbulanceData(
       "",
@@ -108,6 +110,17 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            "Ambulance Registration",
+            style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.w600, fontSize: 16),
+          ),
+          centerTitle: true,
+          actions: [
+            IconButton(onPressed: () {}, icon: Icon(Icons.help_outline))
+          ],
+        ),
         key: _scaffoldKey,
         bottomNavigationBar: Container(
           padding: EdgeInsets.fromLTRB(20, 5, 20, 20),
@@ -117,7 +130,7 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 primary: Color(0xFFf9a825), // background
-                onPrimary: Colors.white, // foreground
+                onPrimary: Colors.black, // foreground
               ),
               onPressed: loading == true || uploadingImage == true
                   ? null
@@ -196,7 +209,7 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    "85% customers prefer to select a Ambulance with a complete profile.",
+                                    "85% customers prefer to call an Ambulance with a complete profile.",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: Color(0xFF2f7769),
@@ -227,7 +240,7 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
                                   border: new OutlineInputBorder(
                                       borderSide: new BorderSide(
                                           color: Colors.grey[200]!)),
-                                  labelText: "Ambulance Name"),
+                                  labelText: "Provider Name"),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Required';
@@ -251,6 +264,38 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
                                 }
                                 return null;
                               },
+                            ),
+                            box20,
+                            DropdownSearch<String>(
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Required';
+                                }
+                                return null;
+                              },
+                              dropdownSearchDecoration: InputDecoration(
+                                prefixIcon: Icon(FontAwesomeIcons.ambulance),
+                                isDense: true, // Added this
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 3, horizontal: 5),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(4)),
+                                  borderSide: BorderSide(
+                                    width: 1,
+                                    color: Color(0xFF2821B5),
+                                  ),
+                                ),
+                                border: new OutlineInputBorder(
+                                    borderSide: new BorderSide(
+                                        color: Color(0xFF23232))),
+                              ),
+                              mode: Mode.MENU,
+                              showSelectedItem: true,
+                              items: ambulanceTypes,
+                              label: "Select Ambulance Type",
+                              hint: "Your Ambulance Type",
+                              onChanged: (e) {},
                             ),
                             SizedBox(
                               height: 20,
@@ -298,7 +343,7 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
                                   border: new OutlineInputBorder(
                                       borderSide: new BorderSide(
                                           color: Colors.grey[200]!)),
-                                  labelText: "Pin Code"),
+                                  labelText: "Serving City Pin Code"),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Required';
@@ -307,50 +352,15 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
                               },
                             ),
                             if (pickupOptions.length != 0)
-                              Column(
-                                children: [
-                                  box5,
-                                  Container(
-                                    alignment: Alignment.bottomRight,
-                                    child: Text(pickupData != null
-                                        ? "${pickupData[0]["District"]}, ${pickupData[0]["State"]}"
-                                        : ""),
-                                  ),
-                                  box20,
-                                  DropdownSearch<String>(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Required';
-                                      }
-                                      return null;
-                                    },
-                                    dropdownSearchDecoration: InputDecoration(
-                                      prefixIcon:
-                                          Icon(FontAwesomeIcons.ambulance),
-                                      isDense: true, // Added this
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 3, horizontal: 5),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(4)),
-                                        borderSide: BorderSide(
-                                          width: 1,
-                                          color: Color(0xFF2821B5),
-                                        ),
-                                      ),
-                                      border: new OutlineInputBorder(
-                                          borderSide: new BorderSide(
-                                              color: Color(0xFF23232))),
-                                    ),
-                                    mode: Mode.MENU,
-                                    showSelectedItem: true,
-                                    items: pickupOptions,
-                                    label: "Select Ambulance Type",
-                                    hint: "Your Ambulance Type",
-                                    onChanged: (e) {},
-                                  ),
-                                ],
-                              ),
+                              Column(children: [
+                                box5,
+                                Container(
+                                  alignment: Alignment.bottomRight,
+                                  child: Text(pickupData != null
+                                      ? "${pickupData[0]["District"]}, ${pickupData[0]["State"]}"
+                                      : ""),
+                                ),
+                              ]),
                             box20,
                             Row(
                               children: [
@@ -469,3 +479,12 @@ class _AmbulanceOnBoardingState extends State<AmbulanceOnBoarding> {
     }
   }
 }
+
+List<String> ambulanceTypes = [
+  "Cardiac Ambulance",
+  "Basic Ambulance",
+  "Neonatal Ambulance",
+  "Mortuary Ambulance",
+  "Air Ambulance",
+  "Patient transport vehicle"
+];
