@@ -122,7 +122,11 @@ class _SelectTenantState extends State<SelectTenant> {
 
 List gridData = [
   {"title": "Doctor", "page": Doctor(), "icon": FontAwesomeIcons.stethoscope},
-  {"title": "Hospital", "page": Hospital(), "icon": FontAwesomeIcons.hospital},
+  {
+    "title": "Hospital",
+    "page": HospitalOnBoarding(),
+    "icon": FontAwesomeIcons.hospital
+  },
   {
     "title": "Volunteer",
     "page": Volunteer(),
@@ -140,7 +144,7 @@ List gridData = [
   },
   {
     "title": "Diagnostic\nLabs",
-    "page": DiagnosticLab(),
+    "page": DiagnosticLabOnBoarding(),
     "icon": FontAwesomeIcons.thermometerThreeQuarters
   },
 ];

@@ -45,15 +45,38 @@ class DatabaseService {
     });
   }
 
-  Future updateHospitalsData(String shopName, String gstNo, String address,
-      String city, String state, String phone) async {
-    await FirebaseFirestore.instance.collection("Hospitals").doc(uid).set({
-      'shopName': shopName,
+  Future updateHospitalData(
+      String pharmacyName,
+      String phone,
+      String pin,
+      String po,
+      String block,
+      String city,
+      String state,
+      String address,
+      String imgUrl,
+      String email,
+      String photoUrl,
+      String name,
+      var position,
+      double long,
+      double lat) async {
+    await FirebaseFirestore.instance.collection("Hospital").doc(uid).set({
+      'pharmacyName': pharmacyName,
       'phone': phone,
       'city': city,
       'state': state,
+      'block': block,
+      'postOffice': po,
       'address': address,
-      "gstNo": gstNo,
+      "pin": pin,
+      "imgUrl": imgUrl,
+      "email": email,
+      "photo": photoUrl,
+      "name": name,
+      'position': position,
+      'lat': lat,
+      'long': long
     });
   }
 
@@ -93,15 +116,38 @@ class DatabaseService {
     });
   }
 
-  Future updateDiagnoticLabsData(String shopName, String gstNo, String address,
-      String city, String state, String phone) async {
-    await FirebaseFirestore.instance.collection("DiagnoticLabs").doc(uid).set({
-      'shopName': shopName,
+  Future updateDiagnosticLabData(
+      String pharmacyName,
+      String phone,
+      String pin,
+      String po,
+      String block,
+      String city,
+      String state,
+      String address,
+      String imgUrl,
+      String email,
+      String photoUrl,
+      String name,
+      var position,
+      double long,
+      double lat) async {
+    await FirebaseFirestore.instance.collection("DiagnosticLab").doc(uid).set({
+      'pharmacyName': pharmacyName,
       'phone': phone,
       'city': city,
       'state': state,
+      'block': block,
+      'postOffice': po,
       'address': address,
-      "gstNo": gstNo,
+      "pin": pin,
+      "imgUrl": imgUrl,
+      "email": email,
+      "photo": photoUrl,
+      "name": name,
+      'position': position,
+      'lat': lat,
+      'long': long
     });
   }
 }

@@ -28,49 +28,52 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool loading = true;
-  late Widget home =
-      _auth.currentUser != null ? Hospital() : OnboardingScreen();
+  late Widget home = OnboardingScreen();
 
   void initState() {
-    if (!kIsWeb) {
-      final subscription = FirebaseAuth.instance.idTokenChanges().listen(null);
-      subscription.onData((event) async {
-        if (event != null) {
-          await FirebaseFirestore.instance
-              .collection('Tenant')
-              .doc(_auth.currentUser!.uid)
-              .get()
-              .then((DocumentSnapshot<Object?> querySnapshot) {
-            var data = TenantDetails.fromMap(querySnapshot);
-            if (data.tenant == "Pharmacy") {
-              setState(() {
-                home = PharmacyHome();
-              });
-            } else if (data.tenant == "Ambulance") {
-            } else if (data.tenant == "Hospital") {
-            } else if (data.tenant == "Volunteer") {
-            } else if (data.tenant == "Doctor") {
-            } else if (data.tenant == "DiagnosticLab") {}
+    final subscription = FirebaseAuth.instance.idTokenChanges().listen(null);
+    subscription.onData((event) async {
+      if (event != null) {
+        await FirebaseFirestore.instance
+            .collection('Tenant')
+            .doc(_auth.currentUser!.uid)
+            .get()
+            .then((DocumentSnapshot<Object?> querySnapshot) {
+          var data = TenantDetails.fromMap(querySnapshot);
+          if (data.tenant == "Pharmacy") {
+            setState(() {
+              home = PharmacyHome();
+            });
+          } else if (data.tenant == "Ambulance") {
+          } else if (data.tenant == "Hospital") {
+          } else if (data.tenant == "Volunteer") {
+          } else if (data.tenant == "Doctor") {
+          } else if (data.tenant == "DiagnosticLab") {
+          } else {
+            setState(() {
+              home = OnboardingScreen();
+            });
+          }
+        });
+        subscription.cancel();
+        setState(() {
+          loading = false;
+        });
+      } else {
+        print("No user yet..");
+        await Future.delayed(Duration(seconds: kIsWeb ? 4 : 1));
+        if (loading) {
+          setState(() {
+            home = OnboardingScreen();
           });
           subscription.cancel();
           setState(() {
             loading = false;
           });
-        } else {
-          print("No user yet..");
-          await Future.delayed(Duration(seconds: kIsWeb ? 4 : 1));
-          if (loading) {
-            setState(() {
-              home = OnboardingScreen();
-            });
-            subscription.cancel();
-            setState(() {
-              loading = false;
-            });
-          }
         }
-      });
-    }
+      }
+    });
+
     super.initState();
   }
 

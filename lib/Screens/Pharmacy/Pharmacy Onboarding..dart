@@ -155,7 +155,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                   : () async {
                       if (formKey.currentState!.validate()) {
                         if (imageUrl == "") {
-                          displaySnackBar("Please Upload Image", context);
                           FeatureDiscovery.clearPreferences(context, <String>{
                             'image',
                           });
@@ -236,14 +235,14 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                             DescribedFeatureOverlay(
                               featureId: "image",
                               tapTarget: Icon(FontAwesomeIcons.camera),
-                              backgroundColor: primaryColor.withOpacity(0.9),
-                              contentLocation: ContentLocation.above,
+                              backgroundColor: primaryColor.withOpacity(0.1),
+                              contentLocation: ContentLocation.trivial,
                               title: const Text(
                                 'Upload Image of your Pharmacy',
                                 style: TextStyle(backgroundColor: primaryColor),
                               ),
                               description: const Text(
-                                'Profile with Images attract more customers',
+                                'Profile with Images attracts\nmore customers.',
                                 style: TextStyle(backgroundColor: primaryColor),
                               ),
                               //onComplete: action,
@@ -256,7 +255,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                                     duration: const Duration(milliseconds: 400),
                                   );
                                 });
-
                                 return true;
                               },
                               child: EnsureVisible(
