@@ -39,6 +39,7 @@ dependencies:
   feature_discovery: ^0.14.0
   argon_buttons_flutter: ^1.1.0
   syncfusion_flutter_maps: ^19.1.66-beta
+  pin_code_fields: ^7.2.0
   
 dev_dependencies:
   flutter_test:

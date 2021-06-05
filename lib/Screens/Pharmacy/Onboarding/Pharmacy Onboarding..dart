@@ -1,14 +1,10 @@
 import 'dart:io';
 import 'package:fastmeds/Constants/Constants.dart';
-import 'package:fastmeds/Constants/Districts.dart';
-import 'package:fastmeds/Screens/Pharmacy/Onboarding/Address%20Page.dart';
-import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/Widgets/Progress%20Appbar.dart';
 import 'package:fastmeds/models/database.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,13 +12,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:geoflutterfire/geoflutterfire.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:location/location.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
-import '../../../Fade Route.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -34,37 +25,24 @@ class PharmacyOnBoarding extends StatefulWidget {
 }
 
 class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
-  Location location = new Location();
-  late double lat;
-  late double lon;
-  late bool _serviceEnabled;
-  late PermissionStatus _permissionGranted;
-  late LocationData _locationData;
-  bool gettingPinData = false;
   late File imageFile;
   late bool isLoading;
   late String imageUrl = "";
-  var pickupData;
-  List<String> pickupOptions = [];
   var dio = Dio();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   bool loading = false;
   bool sendingData = false;
-  late String districtName = "";
-  late String stateName = "";
-  List<StateDistrictMapping> districtMapping = [];
   final formKey = GlobalKey<FormState>();
   var companyName = new TextEditingController();
   var streetAddress = new TextEditingController();
-  var pinCode = new TextEditingController();
+  var otpController = new TextEditingController();
   var phone = new TextEditingController();
   bool uploadingImage = false;
-  late String postOffice;
   final ScrollController scrollController = ScrollController();
-  final geo = Geoflutterfire();
   var feature1OverflowMode = OverflowMode.clipContent;
-  var feature1EnablePulsingAnimation = false;
+  var feature1EnablePulsingAnimation = true;
   var ensureKey = GlobalKey<EnsureVisibleState>();
+  late ConfirmationResult confirmationResult;
 
   @override
   void initState() {
@@ -72,54 +50,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
     DatabaseService(_auth.currentUser!.uid).updatePharmacyData(
         "", "", "", "", "", "", "", "", "", "", "", "", "", 0, 0);
-    getLocation();
-  }
-
-  getLocation() async {
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-    _locationData = await location.getLocation();
-    print(_locationData.latitude!.toString());
-    print(_locationData.longitude!.toString());
-    setState(() {
-      lat = _locationData.latitude!;
-      lon = _locationData.longitude!;
-    });
-    getPinCode(lat.toString(), lon.toString());
-  }
-
-  getPinCode(lat, lon) async {
-    var dio = Dio();
-    final resp = await dio.get(
-        "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon");
-    print(resp.data);
-    pinCode.text = resp.data["address"]["postcode"];
-    getPinData(int.parse(resp.data["address"]["postcode"].toString()));
-  }
-
-  getLatLong(pin) async {
-    var dio = Dio();
-    final resp = await dio.get(
-        "https://nominatim.openstreetmap.org/search?format=json&postalcode=$pin");
-    print(resp.data);
-    var loc = resp.data[0];
-    setState(() {
-      lat = double.tryParse(loc["lat"].toString())!;
-      lon = double.tryParse(loc["lon"].toString())!;
-    });
-    print("Latitude : ${lat.toString()} & Longitude : ${lon.toString()}");
   }
 
   scrollToTop() {
@@ -151,59 +81,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
               onPressed: loading == true || uploadingImage == true
                   ? null
                   : () async {
-                      Navigator.push(
-                        context,
-                        FadeRoute(page: Address()),
-                      );
-                      // if (kIsWeb) {
-                      //   ConfirmationResult confirmationResult =
-                      //       await _auth.currentUser!.linkWithPhoneNumber(
-                      //           "+917073142922", RecaptchaVerifier());
-                      // } else {
-                      //   var phoneNumber = '+91 ' + phone.text.trim();
-                      //   //ok, we have a valid user, now lets do otp verification
-                      //   var verifyPhoneNumber = _auth.verifyPhoneNumber(
-                      //     phoneNumber: phoneNumber,
-                      //     verificationCompleted: (phoneAuthCredential) {
-                      //       //auto code complete (not manually)
-                      //       _auth.currentUser!
-                      //           .linkWithCredential(phoneAuthCredential)
-                      //           .then((user) async {
-                      //         if (user != null) {
-                      //           print("huehuehue");
-                      //         }
-                      //         setState(() {
-                      //           isLoading = false;
-                      //           isResend = false;
-                      //         });
-                      //       });
-                      //     },
-                      //     verificationFailed: (FirebaseAuthException error) {
-                      //       print(error);
-                      //       displaySnackBar(error.toString(), context);
-                      //       setState(() {
-                      //         isLoading = false;
-                      //         otp = false;
-                      //       });
-                      //     },
-                      //     codeSent: (verificationId, [forceResendingToken]) {
-                      //       setState(() {
-                      //         isLoading = false;
-                      //         verificationCode = verificationId;
-                      //         isOTPScreen = true;
-                      //       });
-                      //     },
-                      //     codeAutoRetrievalTimeout: (String verificationId) {
-                      //       setState(() {
-                      //         isLoading = false;
-                      //         verificationCode = verificationId;
-                      //       });
-                      //     },
-                      //     timeout: Duration(seconds: 60),
-                      //   );
-                      //   await verifyPhoneNumber;
-                      // }
-
                       // if (formKey.currentState!.validate()) {
                       //   if (imageUrl == "") {
                       //     FeatureDiscovery.clearPreferences(context, <String>{
@@ -442,31 +319,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     }
   }
 
-  getPinData(pin) async {
-    setState(() {
-      gettingPinData = true;
-    });
-    var response = await dio.get("https://api.postalpincode.in/pincode/$pin");
-    print(response.data);
-    var data = response.data;
-    setState(() {
-      pickupOptions = [];
-    });
-    for (int i = 0; i < data[0]["PostOffice"].length; i++) {
-      pickupOptions.add(data[0]["PostOffice"][i]["Name"]);
-    }
-
-    setState(() {
-      pickupData = data[0]["PostOffice"];
-      pickupOptions = pickupOptions;
-    });
-    print(pickupOptions);
-    print(pickupData);
-    setState(() {
-      gettingPinData = false;
-    });
-  }
-
   Future uploadFile(PickedFile orFile) async {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
     firebase_storage.Reference reference =
@@ -505,6 +357,120 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
       });
     } catch (e) {
       print(e.toString());
+    }
+  }
+
+  clearCaptcha() {
+    if (kIsWeb) {
+      print("Clearing Captcha");
+      RecaptchaVerifier().clear();
+    }
+  }
+
+  linkPhone() async {
+    if (formKey.currentState!.validate()) {
+      try {
+        var phoneNumber = '+91 ' + phone.text.trim();
+        if (kIsWeb) {
+          confirmationResult = await _auth.currentUser!
+              .linkWithPhoneNumber(phoneNumber, RecaptchaVerifier());
+        } else {
+          //ok, we have a valid user, now lets do otp verification
+          var verifyPhoneNumber = _auth.verifyPhoneNumber(
+            phoneNumber: phoneNumber,
+            verificationCompleted: (phoneAuthCredential) {
+              //auto code complete (not manually)
+              _auth.currentUser!
+                  .linkWithCredential(phoneAuthCredential)
+                  .then((user) async {
+                displaySnackBar("Success", context);
+                setState(() {
+                  isLoading = false;
+                  isResend = false;
+                });
+              }).catchError((error) {
+                print(error);
+                if (error.toString().contains("already been linked")) {
+                  displaySnackBar("Already Linked", context);
+                  print("already Linked");
+                }
+              });
+            },
+            verificationFailed: (FirebaseAuthException error) {
+              print(error);
+              displaySnackBar(error.toString(), context);
+
+              setState(() {
+                isLoading = false;
+                otp = false;
+              });
+            },
+            codeSent: (verificationId, [forceResendingToken]) {
+              setState(() {
+                isLoading = false;
+                verificationCode = verificationId;
+                isOTPScreen = true;
+              });
+            },
+            codeAutoRetrievalTimeout: (String verificationId) {
+              setState(() {
+                isLoading = false;
+                verificationCode = verificationId;
+              });
+            },
+            timeout: Duration(seconds: 60),
+          );
+          await verifyPhoneNumber;
+        }
+      } catch (error) {
+        displaySnackBar(error.toString(), context);
+        print(error.toString());
+      }
+    }
+  }
+
+  verifyOTP() async {
+    // if (_formKeyOTP.currentState.validate()) {
+    clearCaptcha();
+    setState(() {
+      isResend = false;
+      isLoading = true;
+    });
+
+    print(kIsWeb);
+    if (kIsWeb) {
+      await confirmationResult.confirm(otpController.text).then((user) {
+        displaySnackBar("Success", context);
+        setState(() {
+          isLoading = false;
+          isResend = false;
+        });
+      });
+    }
+    if (!kIsWeb) {
+      try {
+        _auth.currentUser!
+            .linkWithCredential(PhoneAuthProvider.credential(
+                verificationId: verificationCode,
+                smsCode: otpController.text.toString()))
+            .then((user) async {
+          displaySnackBar("Success", context);
+          setState(() {
+            isLoading = false;
+            isResend = false;
+          });
+        }).catchError((error) {
+          print(error);
+          if (error.toString().contains("already been linked")) {
+            displaySnackBar("Already Linked", context);
+            print("already Linked");
+          }
+        });
+      } catch (e) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 }

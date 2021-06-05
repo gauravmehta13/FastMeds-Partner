@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:fastmeds/Constants/Constants.dart';
+import 'package:fastmeds/Screens/Pharmacy/Onboarding/DrugList.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/Widgets/Progress%20Appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 
 import 'package:location/location.dart';
 
 import 'package:syncfusion_flutter_maps/maps.dart';
+
+import '../../../Fade Route.dart';
 
 class Address extends StatefulWidget {
   @override
@@ -23,23 +27,21 @@ class _AddressState extends State<Address> {
   late LocationData _locationData;
   final _formKey = GlobalKey<FormState>();
 
-  var Area = new TextEditingController();
-  var Pin = new TextEditingController();
-  var City = new TextEditingController();
-  var State = new TextEditingController();
-  var StreetAddress = new TextEditingController();
+  var area = new TextEditingController();
+  var pin = new TextEditingController();
+  var city = new TextEditingController();
+  var state = new TextEditingController();
+  var streetAddress = new TextEditingController();
 
-  int apiCalls = 0;
-  late List<dynamic> SearchResults = [];
-
-  late List<dynamic> PinResults = [];
+  late List<dynamic> searchResults = [];
+  late List<dynamic> pinResults = [];
 
   late String lat;
   late String lng;
 
-  var Address = new TextEditingController();
-  var dropAddress = new TextEditingController();
+  var address = new TextEditingController();
   var dio = Dio();
+  final geo = Geoflutterfire();
 
   late MapZoomPanBehavior _zoomPanBehavior;
   late MapTileLayerController _controller;
@@ -69,7 +71,15 @@ class _AddressState extends State<Address> {
                 primary: Color(0xFFf9a825), // background
                 onPrimary: Colors.white, // foreground
               ),
-              onPressed: () async {},
+              onPressed: () async {
+                GeoFirePoint myLocation =
+                    geo.point(latitude: latitude, longitude: longitude);
+                print(myLocation.data.toString());
+                Navigator.push(
+                  context,
+                  FadeRoute(page: DrugList()),
+                );
+              },
               child: Text(
                 "Next",
                 style: TextStyle(color: Colors.black),
@@ -185,7 +195,7 @@ class _AddressState extends State<Address> {
                                                                       .only(
                                                                   bottom:
                                                                       150.0),
-                                                          controller: Address,
+                                                          controller: address,
                                                           onChanged: (value) {
                                                             search(value);
                                                           },
@@ -213,14 +223,14 @@ class _AddressState extends State<Address> {
                                                             }
                                                             return null;
                                                           },
-                                                          controller: Pin,
+                                                          controller: pin,
                                                           onChanged:
                                                               (pin) async {
-                                                            var Pin =
+                                                            var value =
                                                                 int.tryParse(
                                                                     pin);
                                                             var count = 0,
-                                                                temp = Pin;
+                                                                temp = value;
                                                             while (temp! > 0) {
                                                               count++;
                                                               temp = (temp / 10)
@@ -285,14 +295,13 @@ class _AddressState extends State<Address> {
                                                       ),
                                                     ],
                                                   ),
-                                                  if (PinResults != null &&
-                                                      PinResults.length != 0)
+                                                  if (pinResults != null &&
+                                                      pinResults.length != 0)
                                                     getSuggestions(
-                                                        PinResults, ""),
-                                                  if (SearchResults != null &&
-                                                      SearchResults.length != 0)
+                                                        pinResults, ""),
+                                                  if (searchResults.length != 0)
                                                     getSuggestions(
-                                                        SearchResults, ""),
+                                                        searchResults, ""),
                                                   box20,
                                                   Row(
                                                     children: [
@@ -308,7 +317,7 @@ class _AddressState extends State<Address> {
                                                             }
                                                             return null;
                                                           },
-                                                          controller: City,
+                                                          controller: city,
                                                           scrollPadding:
                                                               const EdgeInsets
                                                                       .only(
@@ -338,7 +347,7 @@ class _AddressState extends State<Address> {
                                                             }
                                                             return null;
                                                           },
-                                                          controller: State,
+                                                          controller: state,
                                                           scrollPadding:
                                                               const EdgeInsets
                                                                       .only(
@@ -373,7 +382,7 @@ class _AddressState extends State<Address> {
                                                                     .only(
                                                                 bottom: 150.0),
                                                         controller:
-                                                            StreetAddress,
+                                                            streetAddress,
                                                         decoration: addressTextfieldDecoration(
                                                             "Enter Street Address",
                                                             'Flat, House No., Building, Company, Apartment'),
@@ -419,17 +428,17 @@ class _AddressState extends State<Address> {
                   FocusScope.of(context).unfocus();
 
                   setState(() {
-                    Address.text = suggestions[index]["Name"];
-                    Pin.text = suggestions[index]["Pincode"];
-                    City.text = suggestions[index]["Division"];
-                    State.text = suggestions[index]["State"];
+                    address.text = suggestions[index]["Name"];
+                    pin.text = suggestions[index]["Pincode"];
+                    city.text = suggestions[index]["Division"];
+                    state.text = suggestions[index]["State"];
                   });
 
                   print(suggestions[index]);
                   setState(() {
                     suggestions = [];
-                    PinResults = [];
-                    SearchResults = [];
+                    pinResults = [];
+                    searchResults = [];
                   });
                 },
               ),
@@ -485,10 +494,10 @@ class _AddressState extends State<Address> {
         "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon");
     print(resp.data);
     setState(() {
-      Address.text = resp.data["address"]["county"];
-      Pin.text = resp.data["address"]["postcode"];
-      City.text = resp.data["address"]["state_district"];
-      State.text = resp.data["address"]["state"];
+      address.text = resp.data["address"]["county"];
+      pin.text = resp.data["address"]["postcode"];
+      city.text = resp.data["address"]["state_district"];
+      state.text = resp.data["address"]["state"];
     });
   }
 
@@ -512,19 +521,19 @@ class _AddressState extends State<Address> {
   }
 
   search(String searchTerm) async {
-    SearchResults = await getAreaData(searchTerm);
+    searchResults = await getAreaData(searchTerm);
     setState(() {
-      SearchResults = SearchResults;
+      searchResults = searchResults;
     });
-    print(SearchResults);
+    print(searchResults);
   }
 
   searchPin(String pin) async {
-    PinResults = await getPinData(pin);
+    pinResults = await getPinData(pin);
     setState(() {
-      PinResults = PinResults;
+      pinResults = pinResults;
       gettingPin = false;
     });
-    print(PinResults);
+    print(pinResults);
   }
 }
