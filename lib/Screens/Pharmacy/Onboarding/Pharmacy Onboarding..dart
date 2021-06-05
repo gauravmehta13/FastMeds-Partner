@@ -4,6 +4,7 @@ import 'package:fastmeds/Constants/Districts.dart';
 import 'package:fastmeds/Screens/Pharmacy/Onboarding/Address%20Page.dart';
 import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
+import 'package:fastmeds/Widgets/Progress%20Appbar.dart';
 import 'package:fastmeds/models/database.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/foundation.dart';
@@ -135,17 +136,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Pharmacy Registration",
-            style: GoogleFonts.montserrat(
-                fontWeight: FontWeight.w600, fontSize: 16),
-          ),
-          centerTitle: true,
-          actions: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.help_outline))
-          ],
-        ),
+        appBar: myAppBar(2, "Pharmacy Registration", context),
         key: _scaffoldKey,
         bottomNavigationBar: Container(
           padding: EdgeInsets.fromLTRB(20, 5, 20, 20),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
+import 'package:fastmeds/Widgets/Progress%20Appbar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:location/location.dart';
@@ -76,7 +77,7 @@ class _AddressState extends State<Address> {
             ),
           ),
         ),
-        appBar: AppBar(),
+        appBar: myAppBar(3, "Pharmacy Registration", context),
         body: SingleChildScrollView(
             child: Form(
                 key: _formKey,
