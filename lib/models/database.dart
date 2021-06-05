@@ -11,11 +11,11 @@ class DatabaseService {
   }
 
   Future updatePharmacyData(
+      String progress,
       String pharmacyName,
       String phone,
       String pin,
-      String po,
-      String block,
+      String area,
       String city,
       String state,
       String address,
@@ -27,12 +27,12 @@ class DatabaseService {
       double long,
       double lat) async {
     await FirebaseFirestore.instance.collection("Pharmacy").doc(uid).set({
+      'progress': progress,
       'pharmacyName': pharmacyName,
       'phone': phone,
       'city': city,
       'state': state,
-      'block': block,
-      'postOffice': po,
+      'area': area,
       'address': address,
       "pin": pin,
       "imgUrl": imgUrl,

@@ -37,6 +37,8 @@ dependencies:
   location: ^4.1.1
   geoflutterfire: ^3.0.0-nullsafety.4
   feature_discovery: ^0.14.0
+  argon_buttons_flutter: ^1.1.0
+  syncfusion_flutter_maps: ^19.1.66-beta
   
 dev_dependencies:
   flutter_test:

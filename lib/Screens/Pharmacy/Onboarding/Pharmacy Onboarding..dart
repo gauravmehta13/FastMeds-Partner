@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:fastmeds/Constants/Constants.dart';
 import 'package:fastmeds/Constants/Districts.dart';
+import 'package:fastmeds/Screens/Pharmacy/Onboarding/Address%20Page.dart';
 import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/models/database.dart';
@@ -19,7 +20,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:location/location.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
-import '../../Fade Route.dart';
+import '../../../Fade Route.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -125,6 +126,12 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
         duration: Duration(milliseconds: 500), curve: Curves.fastOutSlowIn);
   }
 
+  var verificationCode = '';
+
+  var isResend = false;
+  var isRegister = true;
+  bool otp = false;
+  var isOTPScreen = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -153,50 +160,103 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
               onPressed: loading == true || uploadingImage == true
                   ? null
                   : () async {
-                      if (formKey.currentState!.validate()) {
-                        if (imageUrl == "") {
-                          FeatureDiscovery.clearPreferences(context, <String>{
-                            'image',
-                          });
-                          FeatureDiscovery.discoverFeatures(
-                            context,
-                            const <String>{"image"},
-                          );
+                      Navigator.push(
+                        context,
+                        FadeRoute(page: Address()),
+                      );
+                      // if (kIsWeb) {
+                      //   ConfirmationResult confirmationResult =
+                      //       await _auth.currentUser!.linkWithPhoneNumber(
+                      //           "+917073142922", RecaptchaVerifier());
+                      // } else {
+                      //   var phoneNumber = '+91 ' + phone.text.trim();
+                      //   //ok, we have a valid user, now lets do otp verification
+                      //   var verifyPhoneNumber = _auth.verifyPhoneNumber(
+                      //     phoneNumber: phoneNumber,
+                      //     verificationCompleted: (phoneAuthCredential) {
+                      //       //auto code complete (not manually)
+                      //       _auth.currentUser!
+                      //           .linkWithCredential(phoneAuthCredential)
+                      //           .then((user) async {
+                      //         if (user != null) {
+                      //           print("huehuehue");
+                      //         }
+                      //         setState(() {
+                      //           isLoading = false;
+                      //           isResend = false;
+                      //         });
+                      //       });
+                      //     },
+                      //     verificationFailed: (FirebaseAuthException error) {
+                      //       print(error);
+                      //       displaySnackBar(error.toString(), context);
+                      //       setState(() {
+                      //         isLoading = false;
+                      //         otp = false;
+                      //       });
+                      //     },
+                      //     codeSent: (verificationId, [forceResendingToken]) {
+                      //       setState(() {
+                      //         isLoading = false;
+                      //         verificationCode = verificationId;
+                      //         isOTPScreen = true;
+                      //       });
+                      //     },
+                      //     codeAutoRetrievalTimeout: (String verificationId) {
+                      //       setState(() {
+                      //         isLoading = false;
+                      //         verificationCode = verificationId;
+                      //       });
+                      //     },
+                      //     timeout: Duration(seconds: 60),
+                      //   );
+                      //   await verifyPhoneNumber;
+                      // }
 
-                          return;
-                        }
-                        setState(() {
-                          sendingData = true;
-                        });
-                        GeoFirePoint myLocation =
-                            geo.point(latitude: lat, longitude: lon);
-                        print(myLocation.data.toString());
-                        await DatabaseService(_auth.currentUser!.uid)
-                            .updatePharmacyData(
-                          companyName.text,
-                          phone.text,
-                          pinCode.text,
-                          postOffice,
-                          pickupData[0]["Block"],
-                          pickupData[0]["Division"],
-                          pickupData[0]["State"],
-                          streetAddress.text,
-                          imageUrl,
-                          _auth.currentUser!.email!,
-                          _auth.currentUser!.photoURL!,
-                          _auth.currentUser!.displayName!,
-                          myLocation.data,
-                          lat,
-                          lon,
-                        );
-                        setState(() {
-                          sendingData = false;
-                        });
-                        Navigator.pushReplacement(
-                          context,
-                          FadeRoute(page: PharmacyHome()),
-                        );
-                      }
+                      // if (formKey.currentState!.validate()) {
+                      //   if (imageUrl == "") {
+                      //     FeatureDiscovery.clearPreferences(context, <String>{
+                      //       'image',
+                      //     });
+                      //     FeatureDiscovery.discoverFeatures(
+                      //       context,
+                      //       const <String>{"image"},
+                      //     );
+
+                      //     return;
+                      //   }
+                      //   setState(() {
+                      //     sendingData = true;
+                      //   });
+                      //   GeoFirePoint myLocation =
+                      //       geo.point(latitude: lat, longitude: lon);
+                      //   print(myLocation.data.toString());
+                      //   await DatabaseService(_auth.currentUser!.uid)
+                      //       .updatePharmacyData(
+                      //     companyName.text,
+                      //     phone.text,
+                      //     pinCode.text,
+                      //     postOffice,
+                      //     pickupData[0]["Block"],
+                      //     pickupData[0]["Division"],
+                      //     pickupData[0]["State"],
+                      //     streetAddress.text,
+                      //     imageUrl,
+                      //     _auth.currentUser!.email!,
+                      //     _auth.currentUser!.photoURL!,
+                      //     _auth.currentUser!.displayName!,
+                      //     myLocation.data,
+                      //     lat,
+                      //     lon,
+                      //   );
+                      //   setState(() {
+                      //     sendingData = false;
+                      //   });
+                      //   Navigator.pushReplacement(
+                      //     context,
+                      //     FadeRoute(page: PharmacyHome()),
+                      //   );
+                      // }
                     },
               child: sendingData == true || uploadingImage == true
                   ? Column(
@@ -214,7 +274,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                       ],
                     )
                   : Text(
-                      "Save",
+                      "Next",
                       style: TextStyle(color: Colors.black),
                     ),
             ),
@@ -364,137 +424,6 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                               controller: phone,
                               decoration: textfieldDecoration(
                                   "Contact Number", Icons.phone),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            TextFormField(
-                              keyboardType: TextInputType.number,
-                              maxLength: 6,
-                              textInputAction: TextInputAction.next,
-                              controller: pinCode,
-                              onChanged: (pin) async {
-                                var pickupPin = int.tryParse(pin);
-                                var count = 0, temp = pickupPin;
-                                while (temp! > 0) {
-                                  count++;
-                                  temp = (temp / 10).floor();
-                                }
-                                print(count);
-                                setState(() {
-                                  pickupOptions = [];
-                                });
-                                if (count == 6) {
-                                  getLatLong(pin.toString());
-                                  getPinData(pin);
-                                }
-                              },
-                              decoration: new InputDecoration(
-                                  isDense: true,
-                                  suffix: gettingPinData
-                                      ? SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator())
-                                      : null,
-                                  counterText: "",
-                                  prefixIcon:
-                                      Icon(FontAwesomeIcons.locationArrow),
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
-                                    borderSide: BorderSide(
-                                      width: 1,
-                                      color: Color(0xFF2821B5),
-                                    ),
-                                  ),
-                                  border: new OutlineInputBorder(
-                                      borderSide: new BorderSide(
-                                          color: Colors.grey[200]!)),
-                                  labelText: "Pin Code"),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
-                            ),
-                            if (pickupOptions.length != 0)
-                              Column(
-                                children: [
-                                  box5,
-                                  Container(
-                                    alignment: Alignment.bottomRight,
-                                    child: Text(pickupData != null
-                                        ? "${pickupData[0]["District"]}, ${pickupData[0]["State"]}"
-                                        : ""),
-                                  ),
-                                  box20,
-                                  DropdownSearch<String>(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Required';
-                                      }
-                                      return null;
-                                    },
-                                    dropdownSearchDecoration: InputDecoration(
-                                      prefixIcon: Icon(FontAwesomeIcons.city),
-                                      isDense: true, // Added this
-                                      contentPadding: EdgeInsets.symmetric(
-                                          vertical: 3, horizontal: 5),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(4)),
-                                        borderSide: BorderSide(
-                                          width: 1,
-                                          color: Color(0xFF2821B5),
-                                        ),
-                                      ),
-                                      border: new OutlineInputBorder(
-                                          borderSide: new BorderSide(
-                                              color: Color(0xFF23232))),
-                                    ),
-                                    mode: Mode.MENU,
-                                    showSelectedItem: true,
-                                    items: pickupOptions,
-                                    label: "Select Area",
-                                    hint: "Your Area name",
-                                    onChanged: (e) {
-                                      setState(() {
-                                        postOffice = e!;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            box20,
-                            new TextFormField(
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              controller: streetAddress,
-                              decoration: new InputDecoration(
-                                  isDense: true, // Added this
-                                  prefixIcon: Icon(FontAwesomeIcons.building),
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(4)),
-                                    borderSide: BorderSide(
-                                      width: 1,
-                                      color: Color(0xFF2821B5),
-                                    ),
-                                  ),
-                                  border: new OutlineInputBorder(
-                                      borderSide: new BorderSide(
-                                          color: Colors.grey[200]!)),
-                                  labelText: "Street Address"),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Required';

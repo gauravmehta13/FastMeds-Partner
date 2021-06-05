@@ -8,7 +8,7 @@ import 'Diagnostic Labs/Diagnostic Lab Onboarding..dart';
 import 'Volunteer/Volunteer Onboarding.dart';
 import 'Doctor/Doctor  Onboarding..dart';
 import 'Hospital/Hospital Onboarding..dart';
-import 'Pharmacy/Pharmacy Onboarding..dart';
+import 'Pharmacy/Onboarding/Pharmacy Onboarding..dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 

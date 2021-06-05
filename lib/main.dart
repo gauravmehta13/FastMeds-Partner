@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fastmeds/Auth/onboarding_screen.dart';
 import 'package:fastmeds/Screens/Select%20Tenant.dart';
-import 'package:fastmeds/Screens/Hospital/Hospital%20Onboarding..dart';
 import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:feature_discovery/feature_discovery.dart';

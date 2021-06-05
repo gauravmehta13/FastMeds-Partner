@@ -11,6 +11,24 @@ var kSearchBackgroundColor = Color(0xffF2F2F2);
 var kSearchTextColor = Color(0xffC0C0C0);
 var kCategoryTextColor = Color(0xff292685);
 
+addressTextfieldDecoration(label, hint) {
+  return InputDecoration(
+      isDense: true,
+      counterText: "",
+      contentPadding: EdgeInsets.all(15),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+        borderSide: BorderSide(
+          width: 1,
+          color: Color(0xFF2821B5),
+        ),
+      ),
+      border: new OutlineInputBorder(
+          borderSide: new BorderSide(color: Colors.grey)),
+      labelText: label,
+      hintText: hint);
+}
+
 textfieldDecoration(label, IconData icon) {
   return InputDecoration(
       counterText: "",
