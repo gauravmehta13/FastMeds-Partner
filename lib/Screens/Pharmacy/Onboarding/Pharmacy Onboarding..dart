@@ -47,9 +47,9 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   @override
   void initState() {
     super.initState();
-    DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
-    DatabaseService(_auth.currentUser!.uid).updatePharmacyData(
-        "", "", "", "", "", "", "", "", "", "", "", "", "", 0, 0);
+    // DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
+    // DatabaseService(_auth.currentUser!.uid).updatePharmacyData(
+    //     "", "", "", "", "", "", "", "", "", "", "", "", "", 0, 0);
   }
 
   scrollToTop() {
@@ -81,6 +81,8 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
               onPressed: loading == true || uploadingImage == true
                   ? null
                   : () async {
+                      linkPhone();
+
                       // if (formKey.currentState!.validate()) {
                       //   if (imageUrl == "") {
                       //     FeatureDiscovery.clearPreferences(context, <String>{
