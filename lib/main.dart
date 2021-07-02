@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fastmeds/Auth/onboarding_screen.dart';
-import 'package:fastmeds/Screens/Pharmacy/Onboarding/Address%20Page.dart';
 import 'package:fastmeds/Screens/Pharmacy/Onboarding/DrugList.dart';
-import 'package:fastmeds/Screens/Select%20Tenant.dart';
 import 'package:fastmeds/Screens/Pharmacy/PharmacyHome.dart';
+import 'package:fastmeds/Screens/Select%20Tenant.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -95,7 +94,7 @@ class _MyAppState extends State<MyApp> {
             accentColor: primaryColor,
             backgroundColor: primaryColor,
           ),
-          home: loading ? Scaffold(body: Loading()) : DrugList()),
+          home: !loading ? Scaffold(body: Loading()) : SelectTenant()),
     );
   }
 }

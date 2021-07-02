@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:argon_buttons_flutter/argon_buttons_flutter.dart';
 import 'package:fastmeds/Constants/Constants.dart';
+import 'package:fastmeds/Screens/Pharmacy/Onboarding/Address%20Page.dart';
 import 'package:fastmeds/Widgets/Loading.dart';
 import 'package:fastmeds/Widgets/Progress%20Appbar.dart';
 import 'package:fastmeds/models/database.dart';
@@ -11,9 +13,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
+
+import '../../../Fade Route.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -47,7 +53,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
   @override
   void initState() {
     super.initState();
-    // DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
+    DatabaseService(_auth.currentUser!.uid).updateUserData("Pharmacy");
     // DatabaseService(_auth.currentUser!.uid).updatePharmacyData(
     //     "", "", "", "", "", "", "", "", "", "", "", "", "", 0, 0);
   }
@@ -81,7 +87,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
               onPressed: loading == true || uploadingImage == true
                   ? null
                   : () async {
-                      linkPhone();
+                      linkPhone(print);
 
                       // if (formKey.currentState!.validate()) {
                       //   if (imageUrl == "") {
@@ -292,15 +298,113 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                                   AutovalidateMode.onUserInteraction,
                               textInputAction: TextInputAction.next,
                               controller: phone,
+                              onChanged: (e) {
+                                if (e.length == 10) {
+                                  //unfocus
+                                }
+                              },
                               decoration: textfieldDecoration(
                                   "Contact Number", Icons.phone),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
+                              validator: (text) {
+                                if (text == null || text.isEmpty) {
                                   return 'Required';
+                                }
+                                if (text.length < 10) {
+                                  return 'Must be of 10 digits';
                                 }
                                 return null;
                               },
                             ),
+                            if (otp)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 20),
+                                child: PinCodeTextField(
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  validator: (value) {
+                                    if (value!.isEmpty && otp) {
+                                      return 'Please enter OTP';
+                                    }
+                                    return null;
+                                  },
+                                  appContext: context,
+                                  pastedTextStyle: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  length: 6,
+                                  autoDisposeControllers: false,
+                                  enablePinAutofill: true,
+                                  animationType: AnimationType.fade,
+                                  pinTheme: PinTheme(
+                                    shape: PinCodeFieldShape.box,
+                                    borderWidth: 1,
+                                    borderRadius: BorderRadius.circular(5),
+                                    inactiveFillColor: Colors.white,
+                                    inactiveColor: Colors.grey,
+                                    fieldHeight: 50,
+                                    fieldWidth: 50,
+                                  ),
+                                  enableActiveFill: false,
+                                  cursorColor: Colors.black,
+                                  animationDuration:
+                                      Duration(milliseconds: 300),
+                                  controller: otpController,
+                                  keyboardType: TextInputType.number,
+                                  boxShadows: [
+                                    BoxShadow(
+                                      offset: Offset(0, 1),
+                                      color: Colors.black12,
+                                      blurRadius: 10,
+                                    )
+                                  ],
+                                  onCompleted: (v) {
+                                    verifyOTP();
+                                  },
+                                  // onTap: () {
+                                  //   print("Pressed");
+                                  // },
+                                  onChanged: (value) {
+                                    print(value);
+                                  },
+                                  beforeTextPaste: (text) {
+                                    print("Allowing to paste $text");
+                                    //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
+                                    //but you can show anything you want here, like your pop up saying wrong paste format or etc
+                                    return true;
+                                  },
+                                ),
+                              ),
+                            box20,
+                            ArgonButton(
+                              height: 50,
+                              width: double.maxFinite,
+                              borderRadius: 5.0,
+                              color: secondaryColor,
+                              child: Text(
+                                "Continue",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                ),
+                              ),
+                              loader: Container(
+                                padding: EdgeInsets.all(10),
+                                child: SpinKitRotatingCircle(
+                                  color: Colors.white,
+                                  // size: loaderWidth ,
+                                ),
+                              ),
+                              onTap:
+                                  (startLoading, stopLoading, btnState) async {
+                                if (formKey.currentState!.validate()) {
+                                  if (btnState == ButtonState.Idle) {
+                                    startLoading();
+                                  }
+                                  await linkPhone(stopLoading);
+                                }
+                              },
+                            )
                           ],
                         ),
                       ),
@@ -369,7 +473,7 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     }
   }
 
-  linkPhone() async {
+  Future linkPhone(load) async {
     if (formKey.currentState!.validate()) {
       try {
         var phoneNumber = '+91 ' + phone.text.trim();
@@ -385,13 +489,16 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
               _auth.currentUser!
                   .linkWithCredential(phoneAuthCredential)
                   .then((user) async {
+                load();
                 displaySnackBar("Success", context);
                 setState(() {
                   isLoading = false;
                   isResend = false;
                 });
               }).catchError((error) {
+                load();
                 print(error);
+                displaySnackBar(error.toString(), context);
                 if (error.toString().contains("already been linked")) {
                   displaySnackBar("Already Linked", context);
                   print("already Linked");
@@ -443,6 +550,10 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
     if (kIsWeb) {
       await confirmationResult.confirm(otpController.text).then((user) {
         displaySnackBar("Success", context);
+        Navigator.pushReplacement(
+          context,
+          FadeRoute(page: Address()),
+        );
         setState(() {
           isLoading = false;
           isResend = false;
@@ -457,6 +568,10 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
                 smsCode: otpController.text.toString()))
             .then((user) async {
           displaySnackBar("Success", context);
+          Navigator.pushReplacement(
+            context,
+            FadeRoute(page: Address()),
+          );
           setState(() {
             isLoading = false;
             isResend = false;
@@ -466,6 +581,10 @@ class _PharmacyOnBoardingState extends State<PharmacyOnBoarding> {
           if (error.toString().contains("already been linked")) {
             displaySnackBar("Already Linked", context);
             print("already Linked");
+            Navigator.pushReplacement(
+              context,
+              FadeRoute(page: Address()),
+            );
           }
         });
       } catch (e) {
